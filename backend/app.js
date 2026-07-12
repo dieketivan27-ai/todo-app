@@ -4,6 +4,7 @@ const cors = require('cors');
 const { connectDB, sequelize } = require('./config/database');
 const taskRoutes = require('./routes/task.routes');
 const goalRoutes = require('./routes/goal.routes');
+const ocrRoutes = require('./routes/ocr.routes');
 const { startCronJobs } = require('./middleware/cron');
 
 const app = express();
@@ -36,6 +37,7 @@ app.use(express.urlencoded({ extended: true }));
 // Routes
 app.use('/api/tasks', taskRoutes);
 app.use('/api/goals', goalRoutes);
+app.use('/api/ocr', ocrRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

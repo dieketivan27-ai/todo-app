@@ -11,6 +11,7 @@ import {
 import { GoalService } from '../../services/goal.service';
 import { GoalCardComponent } from './goal-card.component';
 import { GoalFormComponent } from './goal-form.component';
+import { ScanDocumentComponent } from './scan-document.component';
 import {
   Chart, LineElement, PointElement, LinearScale, CategoryScale,
   Filler, Tooltip, Legend, LineController
@@ -21,7 +22,7 @@ Chart.register(LineElement, PointElement, LinearScale, CategoryScale, Filler, To
 @Component({
   selector: 'app-goals-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, GoalCardComponent, GoalFormComponent],
+  imports: [CommonModule, FormsModule, GoalCardComponent, GoalFormComponent, ScanDocumentComponent],
   templateUrl: './goals-dashboard.component.html'
 })
 export class GoalsDashboardComponent implements OnInit, OnDestroy, AfterViewChecked {
@@ -30,6 +31,7 @@ export class GoalsDashboardComponent implements OnInit, OnDestroy, AfterViewChec
   dashboard = signal<GoalDashboard | null>(null);
   loading = signal(false);
   showForm = signal(false);
+  showScanModal = signal(false);
   editingGoal = signal<Goal | null>(null);
   selectedYear = signal(new Date().getFullYear());
   activeTab = signal<'overview' | 'alerts'>('overview');
@@ -74,6 +76,10 @@ export class GoalsDashboardComponent implements OnInit, OnDestroy, AfterViewChec
 
   closeForm() { this.showForm.set(false); this.editingGoal.set(null); }
 
+  openScanModal() { this.showScanModal.set(true); }
+
+  closeScanModal() { this.showScanModal.set(false); }
+
   onSave(data: GoalCreate) {
     const editing = this.editingGoal();
     if (editing) {
@@ -85,6 +91,22 @@ export class GoalsDashboardComponent implements OnInit, OnDestroy, AfterViewChec
         next: () => { this.closeForm(); this.loadDashboard(); }
       });
     }
+  }
+
+  onGoalsImported(goals: GoalCreate[]) {
+    this.closeScanModal();
+    // Create all goals sequentially
+    const createNext = (index: number) => {
+      if (index >= goals.length) {
+        this.loadDashboard();
+        return;
+      }
+      this.goalService.create(goals[index]).subscribe({
+        next: () => createNext(index + 1),
+        error: () => createNext(index + 1)
+      });
+    };
+    createNext(0);
   }
 
   onDeleteGoal(id: number) {

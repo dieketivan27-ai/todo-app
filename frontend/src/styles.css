@@ -46,6 +46,13 @@
            focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2;
   }
 
+  .btn-scan {
+    @apply inline-flex items-center gap-2 px-4 py-2 font-medium rounded-lg transition-all duration-150
+           focus:outline-none focus:ring-2 focus:ring-violet-400 focus:ring-offset-2
+           border border-violet-500/40 text-violet-300 bg-violet-500/10
+           hover:bg-violet-500/20 hover:border-violet-400 hover:text-violet-200;
+  }
+
   .card {
     @apply bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700
            shadow-sm hover:shadow-md transition-shadow duration-200;

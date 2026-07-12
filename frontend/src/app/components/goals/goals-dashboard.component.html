@@ -14,7 +14,15 @@
         <select class="year-select" [(ngModel)]="selectedYear" (change)="onYearChange(selectedYear())">
           <option *ngFor="let y of years" [value]="y">{{ y }}</option>
         </select>
-        <button class="btn-primary" (click)="openCreateForm()">
+        <!-- Scan document button -->
+        <button class="btn-scan" (click)="openScanModal()" id="btn-scan-document" title="Scanner un document avec l'IA">
+          <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M3 9V5a2 2 0 012-2h4m0 0h6a2 2 0 012 2v4M7 3v4m10-4v4M3 15v4a2 2 0 002 2h4m6 0h2a2 2 0 002-2v-4M3 9h18M3 15h18"/>
+          </svg>
+          Scanner
+        </button>
+        <button class="btn-primary" (click)="openCreateForm()" id="btn-new-goal">
           <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
           </svg>
@@ -169,5 +177,12 @@
     (save)="onSave($event)"
     (cancel)="closeForm()">
   </app-goal-form>
+
+  <!-- Modal scan document IA -->
+  <app-scan-document
+    *ngIf="showScanModal()"
+    (goalsImported)="onGoalsImported($event)"
+    (closed)="closeScanModal()">
+  </app-scan-document>
 
 </div>
