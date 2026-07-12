@@ -1,0 +1,173 @@
+<div class="goals-dashboard">
+
+  <!-- Header -->
+  <div class="dash-header">
+    <div class="dash-title-row">
+      <h2 class="dash-title">
+        <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+        </svg>
+        Objectifs & Évolution
+      </h2>
+      <div class="dash-actions">
+        <!-- Sélecteur année -->
+        <select class="year-select" [(ngModel)]="selectedYear" (change)="onYearChange(selectedYear())">
+          <option *ngFor="let y of years" [value]="y">{{ y }}</option>
+        </select>
+        <button class="btn-primary" (click)="openCreateForm()">
+          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+          </svg>
+          Nouvel objectif
+        </button>
+      </div>
+    </div>
+
+    <!-- Summary KPIs -->
+    <div class="summary-kpis" *ngIf="dashboard()?.summary as s">
+      <div class="sum-kpi">
+        <span class="sum-kpi-value">{{ s.totalGoals }}</span>
+        <span class="sum-kpi-label">Objectifs</span>
+      </div>
+      <div class="sum-kpi sum-kpi-warn" *ngIf="s.lateCount > 0">
+        <span class="sum-kpi-value">{{ s.lateCount }}</span>
+        <span class="sum-kpi-label">En retard</span>
+      </div>
+      <div class="sum-kpi">
+        <span class="sum-kpi-value">{{ s.dailyAlertsCount }}</span>
+        <span class="sum-kpi-label">Alertes du jour</span>
+      </div>
+      <div class="sum-kpi">
+        <span class="sum-kpi-value">Sem. {{ s.currentWeek }}</span>
+        <span class="sum-kpi-label">Semaine actuelle</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="dash-loading" *ngIf="loading()">
+    <div class="spinner"></div>
+    <span>Chargement du dashboard...</span>
+  </div>
+
+  <ng-container *ngIf="!loading() && dashboard() as d">
+
+    <!-- Onglets internes -->
+    <div class="inner-tabs">
+      <button class="inner-tab" [class.inner-tab-active]="activeTab() === 'overview'" (click)="activeTab.set('overview')">Vue d'ensemble</button>
+      <button class="inner-tab" [class.inner-tab-active]="activeTab() === 'alerts'" (click)="activeTab.set('alerts')">
+        Alertes
+        <span class="alert-badge" *ngIf="d.dailyAlerts.length > 0">{{ d.dailyAlerts.length }}</span>
+      </button>
+    </div>
+
+    <!-- Vue d'ensemble -->
+    <ng-container *ngIf="activeTab() === 'overview'">
+
+      <!-- Global Chart -->
+      <div class="global-chart-card" *ngIf="d.goals.length > 0">
+        <h3 class="chart-card-title">Évolution globale (% d'avancement)</h3>
+        <div class="global-chart-wrap">
+          <canvas #globalChartCanvas></canvas>
+        </div>
+      </div>
+
+      <!-- Empty state -->
+      <div class="empty-goals" *ngIf="d.goals.length === 0">
+        <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+        </svg>
+        <p>Aucun objectif pour {{ selectedYear() }}.</p>
+        <button class="btn-primary" (click)="openCreateForm()">Créer mon premier objectif</button>
+      </div>
+
+      <!-- Goals Grid -->
+      <div class="goals-grid" *ngIf="d.goals.length > 0">
+        <app-goal-card
+          *ngFor="let goal of d.goals"
+          [goal]="goal"
+          (edit)="openEditForm($event)"
+          (delete)="onDeleteGoal($event)">
+        </app-goal-card>
+      </div>
+    </ng-container>
+
+    <!-- Alertes -->
+    <ng-container *ngIf="activeTab() === 'alerts'">
+
+      <!-- Late Goals -->
+      <div class="alerts-section" *ngIf="d.lateGoals.length > 0">
+        <h3 class="alerts-section-title">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+          </svg>
+          Objectifs en retard ({{ d.lateGoals.length }})
+        </h3>
+        <div class="alerts-list">
+          <div class="alert-item alert-item-late" *ngFor="let g of d.lateGoals">
+            <div class="alert-color-dot" [style.background]="g.color"></div>
+            <div class="alert-info">
+              <span class="alert-name">{{ g.title }}</span>
+              <span class="alert-sub">{{ g.category }} · Taux d'évolution : {{ g.stats.evolutionRate }}%</span>
+            </div>
+            <span class="alert-chip chip-late">En retard</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Daily Alerts (tâches en retard) -->
+      <div class="alerts-section" *ngIf="d.dailyAlerts.length > 0">
+        <h3 class="alerts-section-title">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+          </svg>
+          Alertes journalières — tâches à traiter ({{ d.dailyAlerts.length }})
+        </h3>
+        <div class="alerts-list">
+          <div class="alert-item" *ngFor="let t of d.dailyAlerts">
+            <span class="alert-name">{{ t.title }}</span>
+            <span class="alert-sub">{{ t.category }} · {{ t.priority }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Overdue tasks -->
+      <div class="alerts-section" *ngIf="d.overdueTasks.length > 0">
+        <h3 class="alerts-section-title">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          Tâches en retard ({{ d.overdueTasks.length }})
+        </h3>
+        <div class="alerts-list">
+          <div class="alert-item alert-item-overdue" *ngFor="let t of d.overdueTasks">
+            <div class="alert-info">
+              <span class="alert-name">{{ t.title }}</span>
+              <span class="alert-sub">{{ t.category }} · Deadline : {{ t.deadline | date:'dd/MM/yyyy' }}</span>
+            </div>
+            <span class="alert-chip chip-overdue">{{ getDaysOverdue(t.deadline!) }}j de retard</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- No alerts -->
+      <div class="empty-goals" *ngIf="d.lateGoals.length === 0 && d.dailyAlerts.length === 0 && d.overdueTasks.length === 0">
+        <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <p>Aucune alerte — vous êtes à jour !</p>
+      </div>
+    </ng-container>
+
+  </ng-container>
+
+  <!-- Modal formulaire -->
+  <app-goal-form
+    *ngIf="showForm()"
+    [initialData]="editingGoal()"
+    [isEdit]="editingGoal() !== null"
+    (save)="onSave($event)"
+    (cancel)="closeForm()">
+  </app-goal-form>
+
+</div>

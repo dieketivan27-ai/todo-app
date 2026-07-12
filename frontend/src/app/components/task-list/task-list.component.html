@@ -1,0 +1,37 @@
+<!-- Chargement -->
+<div *ngIf="loading" class="space-y-3">
+  <div *ngFor="let i of [1,2,3]" class="card p-4 animate-pulse">
+    <div class="flex gap-3">
+      <div class="w-5 h-5 rounded bg-gray-200 dark:bg-gray-700 flex-shrink-0 mt-0.5"></div>
+      <div class="flex-1 space-y-2">
+        <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+        <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+        <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Liste -->
+<div *ngIf="!loading && tasks.length > 0" class="space-y-2">
+  <app-task-item
+    *ngFor="let task of tasks; trackBy: track"
+    [task]="task"
+    (edit)="edit.emit($event)"
+    (delete)="delete.emit($event)"
+    (markDone)="markDone.emit($event)"
+    (markInProgress)="markInProgress.emit($event)">
+  </app-task-item>
+</div>
+
+<!-- Vide -->
+<div *ngIf="!loading && tasks.length === 0" class="card p-12 text-center">
+  <div class="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+    <svg class="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+    </svg>
+  </div>
+  <p class="text-gray-500 dark:text-gray-400 font-medium">Aucune tâche trouvée</p>
+  <p class="text-gray-400 dark:text-gray-500 text-sm mt-1">Créez votre première tâche ou modifiez les filtres</p>
+</div>

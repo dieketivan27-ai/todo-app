@@ -1,0 +1,74 @@
+<div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
+  <div class="card w-full max-w-lg p-6 animate-slide-up">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-5">
+      <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+        {{ isEditing ? 'Modifier la tâche' : 'Nouvelle tâche' }}
+      </h2>
+      <button (click)="cancel.emit()"
+        class="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Form -->
+    <form (ngSubmit)="onSubmit()" class="space-y-4">
+
+      <!-- Titre -->
+      <div>
+        <label class="form-label">Titre <span class="text-red-500">*</span></label>
+        <input type="text" [(ngModel)]="form.title" name="title"
+          placeholder="Nom de la tâche..." class="form-input" required autofocus>
+      </div>
+
+      <!-- Description -->
+      <div>
+        <label class="form-label">Description</label>
+        <textarea [(ngModel)]="form.description" name="description"
+          placeholder="Détails optionnels..." rows="3"
+          class="form-input resize-none"></textarea>
+      </div>
+
+      <!-- Priorité + Catégorie -->
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="form-label">Priorité</label>
+          <select [(ngModel)]="form.priority" name="priority" class="form-input">
+            <option value="LOW">🟢 Faible</option>
+            <option value="MEDIUM">🟡 Moyenne</option>
+            <option value="HIGH">🔴 Haute</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">Catégorie</label>
+          <select [(ngModel)]="form.category" name="category" class="form-input">
+            <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Échéance -->
+      <div>
+        <label class="form-label">Date d'échéance</label>
+        <input type="date" [(ngModel)]="form.deadline" name="deadline" class="form-input">
+      </div>
+
+      <!-- Actions -->
+      <div class="flex justify-end gap-3 pt-2">
+        <button type="button" (click)="cancel.emit()" class="btn-secondary">
+          Annuler
+        </button>
+        <button type="submit" class="btn-primary" [disabled]="!form.title.trim()">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+          </svg>
+          {{ isEditing ? 'Enregistrer' : 'Créer la tâche' }}
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>

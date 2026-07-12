@@ -1,0 +1,39 @@
+<div *ngIf="stats" class="space-y-4 animate-fade-in">
+
+  <!-- Cartes stats -->
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+    <div class="card p-4">
+      <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ stats.total }}</p>
+      <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Total</p>
+    </div>
+    <div class="card p-4">
+      <p class="text-2xl font-bold text-blue-600 dark:text-blue-400">{{ stats.inProgress }}</p>
+      <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">En cours</p>
+    </div>
+    <div class="card p-4">
+      <p class="text-2xl font-bold text-green-600 dark:text-green-400">{{ stats.done }}</p>
+      <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Terminées</p>
+    </div>
+    <div class="card p-4">
+      <p class="text-2xl font-bold text-red-600 dark:text-red-400">{{ stats.late }}</p>
+      <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">En retard</p>
+    </div>
+  </div>
+
+  <!-- Barre de progression -->
+  <div class="card p-4">
+    <div class="flex items-center justify-between mb-2">
+      <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Progression globale</span>
+      <span class="text-sm font-bold text-primary-600 dark:text-primary-400">{{ stats.completionRate }}%</span>
+    </div>
+    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 overflow-hidden">
+      <div class="h-2.5 rounded-full bg-gradient-to-r from-primary-500 to-primary-600 transition-all duration-700 ease-out"
+           [style.width.%]="stats.completionRate">
+      </div>
+    </div>
+    <p class="text-xs text-gray-400 dark:text-gray-500 mt-1.5">
+      {{ stats.done }} terminée{{ stats.done > 1 ? 's' : '' }} sur {{ stats.total }} tâche{{ stats.total > 1 ? 's' : '' }}
+    </p>
+  </div>
+
+</div>

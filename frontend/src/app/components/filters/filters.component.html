@@ -1,0 +1,58 @@
+<div class="card p-4 space-y-3">
+
+  <!-- Recherche -->
+  <div class="relative">
+    <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+    </svg>
+    <input type="text" [(ngModel)]="filters.search" (ngModelChange)="onSearchChange()"
+      placeholder="Rechercher une tâche..."
+      class="form-input pl-9 text-sm">
+  </div>
+
+  <!-- Filtres en ligne -->
+  <div class="flex flex-wrap gap-2">
+
+    <select [(ngModel)]="filters.status" (ngModelChange)="onFilterChange()"
+      class="form-input w-auto text-sm flex-1 min-w-[120px]">
+      <option value="">Tous les statuts</option>
+      <option value="TODO">À faire</option>
+      <option value="IN_PROGRESS">En cours</option>
+      <option value="DONE">Terminées</option>
+      <option value="LATE">En retard</option>
+    </select>
+
+    <select [(ngModel)]="filters.priority" (ngModelChange)="onFilterChange()"
+      class="form-input w-auto text-sm flex-1 min-w-[120px]">
+      <option value="">Toutes priorités</option>
+      <option value="HIGH">Haute</option>
+      <option value="MEDIUM">Moyenne</option>
+      <option value="LOW">Faible</option>
+    </select>
+
+    <select [(ngModel)]="filters.category" (ngModelChange)="onFilterChange()"
+      class="form-input w-auto text-sm flex-1 min-w-[120px]">
+      <option value="">Toutes catégories</option>
+      <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+    </select>
+
+    <select [(ngModel)]="filters.sortBy" (ngModelChange)="onFilterChange()"
+      class="form-input w-auto text-sm flex-1 min-w-[120px]">
+      <option value="created_at">Date création</option>
+      <option value="deadline">Échéance</option>
+      <option value="priority">Priorité</option>
+      <option value="title">Titre</option>
+    </select>
+
+    <!-- Reset -->
+    <button *ngIf="hasActiveFilters" (click)="reset()"
+      class="btn-secondary text-sm px-3 py-2 text-red-500 dark:text-red-400 border-red-200 dark:border-red-800">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+      </svg>
+      Réinitialiser
+    </button>
+
+  </div>
+
+</div>
