@@ -8,7 +8,7 @@ import { Router } from '@angular/router';
 })
 export class AuthService {
   private readonly baseUrl = '/api/auth';
-  private currentUserSubject = new BehaviorSubject<any>(null);
+  private currentUserSubject = new BehaviorSubject<any>(undefined);
   public currentUser$ = this.currentUserSubject.asObservable();
 
   constructor(private http: HttpClient, private router: Router) {
@@ -62,6 +62,10 @@ export class AuthService {
   }
 
   isAuthenticated(): boolean {
-    return this.currentUserSubject.value !== null;
+    return this.currentUserSubject.value !== null && this.currentUserSubject.value !== undefined;
+  }
+
+  isLoading(): boolean {
+    return this.currentUserSubject.value === undefined;
   }
 }

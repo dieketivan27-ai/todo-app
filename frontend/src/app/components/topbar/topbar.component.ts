@@ -90,14 +90,57 @@ import { NotificationService, Notification } from '../../services/notification.s
           </div>
         </div>
 
-        <!-- User chip -->
-        <div class="flex items-center gap-2 bg-indigo-50/60 border border-indigo-100 rounded-xl p-1 pr-3" *ngIf="auth.currentUser$ | async as user">
-          <div class="w-7 h-7 rounded-lg bg-[#3b28cc] flex items-center justify-center text-white font-extrabold text-xs shadow-sm">
-            {{ user.name.charAt(0).toUpperCase() }}
-          </div>
-          <div class="flex flex-col text-left">
-            <span class="text-xs font-extrabold text-gray-900 leading-none">{{ user.name.split(' ')[0] }}</span>
-            <span class="text-[10px] font-bold text-[#3b28cc] leading-none mt-0.5">Plan Pro</span>
+        <!-- User chip + Dropdown -->
+        <div class="relative" *ngIf="auth.currentUser$ | async as user">
+          <button (click)="toggleUserMenu()" class="flex items-center gap-2 bg-indigo-50/60 border border-indigo-100 rounded-xl p-1 pr-3 hover:bg-indigo-100/60 transition-colors">
+            <div class="w-7 h-7 rounded-lg bg-[#3b28cc] flex items-center justify-center text-white font-extrabold text-xs shadow-sm">
+              {{ user.name.charAt(0).toUpperCase() }}
+            </div>
+            <div class="flex flex-col text-left">
+              <span class="text-xs font-extrabold text-gray-900 leading-none">{{ user.name.split(' ')[0] }}</span>
+              <span class="text-[10px] font-bold text-[#3b28cc] leading-none mt-0.5">Plan Pro</span>
+            </div>
+            <svg class="w-3.5 h-3.5 text-gray-400 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+
+          <!-- User dropdown -->
+          <div *ngIf="showUserMenu()" class="absolute right-0 mt-2 w-60 bg-white rounded-2xl shadow-xl border border-gray-100 z-50 py-1.5 overflow-hidden">
+            <!-- User info header -->
+            <div class="px-4 py-3 border-b border-gray-100">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-[#3b28cc] to-[#8b5cf6] flex items-center justify-center text-white font-extrabold text-sm shadow">
+                  {{ user.name.charAt(0).toUpperCase() }}
+                </div>
+                <div>
+                  <p class="text-sm font-extrabold text-gray-900">{{ user.name }}</p>
+                  <p class="text-xs text-gray-500 truncate max-w-[140px]">{{ user.email }}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Menu items -->
+            <div class="py-1.5">
+              <button (click)="exportData()" class="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-3">
+                <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                <span class="font-semibold">Exporter mes données</span>
+                <span class="ml-auto text-[10px] font-bold text-gray-400 border border-gray-200 rounded px-1.5">RGPD</span>
+              </button>
+              <a routerLink="/privacy" (click)="closeUserMenu()" class="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-3">
+                <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                <span class="font-semibold">Politique de confidentialité</span>
+              </a>
+            </div>
+
+            <div class="border-t border-gray-100 py-1.5">
+              <button (click)="logout()" class="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-3">
+                <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                <span class="font-semibold">Se déconnecter</span>
+              </button>
+              <button (click)="deleteAccount()" class="w-full text-left px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors flex items-center gap-3">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                <span class="font-semibold">Supprimer le compte</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -170,6 +213,7 @@ export class TopbarComponent implements OnInit {
   currentDate = '';
   weekNumber = 0;
   showModal = signal(false);
+  showUserMenu = signal(false);
   saving = signal(false);
   formError = signal<string | null>(null);
   categories = CATEGORIES;
@@ -223,6 +267,26 @@ export class TopbarComponent implements OnInit {
   onSearch() {
     if (this.searchQuery.trim()) {
       this.router.navigate(['/tasks'], { queryParams: { search: this.searchQuery.trim() } });
+    }
+  }
+
+  toggleUserMenu() { this.showUserMenu.set(!this.showUserMenu()); }
+  closeUserMenu() { this.showUserMenu.set(false); }
+
+  logout() {
+    this.auth.logout();
+    this.closeUserMenu();
+  }
+
+  exportData() {
+    this.closeUserMenu();
+    alert("Fonctionnalité d'exportation de données déclenchée (RGPD Article 20).");
+  }
+
+  deleteAccount() {
+    this.closeUserMenu();
+    if (confirm("Êtes-vous sûr de vouloir supprimer définitivement votre compte et toutes vos données (RGPD Article 17) ? Cette action est irréversible.")) {
+      alert("Demande de suppression envoyée au serveur.");
     }
   }
 

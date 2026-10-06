@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 import { LoginComponent } from './components/auth/login.component';
 import { RegisterComponent } from './components/auth/register.component';
-import { AuthGuard } from './guards/auth.guard';
+import { authGuard } from './guards/auth.guard';
 import { LayoutComponent } from './components/layout/layout.component';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { FocusComponent } from './components/focus/focus.component';
@@ -17,7 +17,7 @@ export const routes: Routes = [
   {
     path: '',
     component: LayoutComponent,
-    canActivate: [AuthGuard],
+    canActivate: [authGuard],
     children: [
       { path: 'dashboard', component: DashboardComponent },
       { path: 'focus', component: FocusComponent },
