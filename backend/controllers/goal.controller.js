@@ -145,15 +145,30 @@ const getDashboard = async (req, res) => {
   try {
     const now = new Date();
     const year = parseInt(req.query.year) || now.getFullYear();
-    const currentWeek = getISOWeek(now);
-    const currentMonth = now.getMonth() + 1;
+    const currentYear = now.getFullYear();
+
+    let currentWeek, currentMonth;
+    if (year < currentYear) {
+      currentWeek = 52;
+      currentMonth = 12;
+    } else if (year > currentYear) {
+      currentWeek = 0;
+      currentMonth = 0;
+    } else {
+      currentWeek = getISOWeek(now);
+      currentMonth = now.getMonth() + 1;
+    }
 
     const goals = await Goal.findAll({ where: { year, user_id: req.user.id }, order: [['created_at', 'DESC']] });
 
     const yearStart = new Date(year, 0, 1);
     const yearEnd = new Date(year, 11, 31, 23, 59, 59, 999);
-    const { start: monthStart, end: monthEnd } = getMonthBounds(year, currentMonth);
-    const { start: weekStart, end: weekEnd } = getWeekBounds(year, currentWeek);
+    
+    const mForBounds = Math.max(1, currentMonth);
+    const wForBounds = Math.max(1, currentWeek);
+    const { start: monthStart, end: monthEnd } = getMonthBounds(year, mForBounds);
+    const { start: weekStart, end: weekEnd } = getWeekBounds(year, wForBounds);
+    
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
 
@@ -168,15 +183,28 @@ const getDashboard = async (req, res) => {
 
       const [annualDone, monthDone, weekDone] = await Promise.all([
         Task.count({ where: whereBase }),
-        Task.count({ where: { ...whereBase, completed_at: { [Op.between]: [monthStart, monthEnd] } } }),
-        Task.count({ where: { ...whereBase, completed_at: { [Op.between]: [weekStart, weekEnd] } } })
+        currentMonth > 0 ? Task.count({ where: { ...whereBase, completed_at: { [Op.between]: [monthStart, monthEnd] } } }) : 0,
+        currentWeek > 0 ? Task.count({ where: { ...whereBase, completed_at: { [Op.between]: [weekStart, weekEnd] } } }) : 0
       ]);
 
-      const weeklyTarget = goal.annual_target / 52;
-      const monthlyTarget = goal.annual_target / 12;
+      const createdAt = new Date(goal.created_at || now);
+      let startWeek = 1;
+      let startMonth = 1;
+      if (createdAt.getFullYear() === year) {
+        startWeek = getISOWeek(createdAt);
+        startMonth = createdAt.getMonth() + 1;
+      }
 
-      // Pace idéal: combien de semaines écoulées / 52
-      const idealPacePct = Math.min((currentWeek / 52) * 100, 100);
+      const totalWeeks = Math.max(52 - startWeek + 1, 1);
+      const elapsedWeeks = Math.max(currentWeek - startWeek + 1, 0);
+      const totalMonths = Math.max(12 - startMonth + 1, 1);
+      const elapsedMonths = Math.max(currentMonth - startMonth + 1, 0);
+
+      const weeklyTarget = goal.annual_target / totalWeeks;
+      const monthlyTarget = goal.annual_target / totalMonths;
+
+      // Pace idéal: combien de semaines écoulées / total semaines
+      const idealPacePct = Math.min((elapsedWeeks / totalWeeks) * 100, 100);
       const annualPct = Math.min((annualDone / goal.annual_target) * 100, 100);
       const monthlyPct = Math.min((monthDone / Math.ceil(monthlyTarget)) * 100, 100);
       const weeklyPct = Math.min((weekDone / Math.ceil(weeklyTarget)) * 100, 100);
@@ -186,7 +214,8 @@ const getDashboard = async (req, res) => {
 
       // Données semaine par semaine pour la courbe (depuis semaine 1 jusqu'à currentWeek)
       const weeklyData = [];
-      for (let w = 1; w <= Math.min(currentWeek, 52); w++) {
+      const loopWeeks = Math.min(currentWeek, 52);
+      for (let w = 1; w <= loopWeeks; w++) {
         const { start: ws, end: we } = getWeekBounds(year, w);
         const wDone = await Task.count({
           where: {
@@ -196,10 +225,16 @@ const getDashboard = async (req, res) => {
             completed_at: { [Op.between]: [yearStart, we] }
           }
         });
+        
+        let ideal = 0;
+        if (w >= startWeek) {
+          ideal = Math.round(((w - startWeek + 1) / totalWeeks) * goal.annual_target);
+        }
+        
         weeklyData.push({
           week: w,
           actual: wDone,
-          ideal: Math.round((w / 52) * goal.annual_target)
+          ideal: Math.min(ideal, goal.annual_target)
         });
       }
 

@@ -109,7 +109,7 @@ export class GoalsDashboardComponent implements OnInit {
   editingGoal = signal<Goal | null>(null);
   selectedYear = signal(new Date().getFullYear());
 
-  readonly years = [2024, 2025, 2026, 2027];
+  readonly years = Array.from({ length: 4 }, (_, i) => new Date().getFullYear() + i);
 
   ngOnInit() { this.loadGoals(); }
 
