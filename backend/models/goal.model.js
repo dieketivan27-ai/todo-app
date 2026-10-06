@@ -39,6 +39,10 @@ const Goal = sequelize.define('Goal', {
   description: {
     type: DataTypes.TEXT,
     allowNull: true
+  },
+  user_id: {
+    type: DataTypes.INTEGER,
+    allowNull: true
   }
 }, {
   tableName: 'goals',

@@ -21,7 +21,9 @@ export class TaskFormComponent implements OnInit {
     description: '',
     priority: 'MEDIUM',
     category: 'Général',
-    deadline: ''
+    deadline: '',
+    start_time: '',
+    end_time: ''
   };
 
   get isEditing(): boolean {
@@ -35,7 +37,9 @@ export class TaskFormComponent implements OnInit {
         description: this.task.description ?? '',
         priority: this.task.priority,
         category: this.task.category,
-        deadline: this.task.deadline ?? ''
+        deadline: this.task.deadline ?? '',
+        start_time: this.task.start_time ?? '',
+        end_time: this.task.end_time ?? ''
       };
     }
   }

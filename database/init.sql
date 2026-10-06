@@ -14,10 +14,3 @@ CREATE TABLE IF NOT EXISTS tasks (
   completed_at TIMESTAMP NULL
 );
 
--- Données de démo
-INSERT INTO tasks (title, description, priority, status, category, deadline) VALUES
-('Réviser le rapport Q2', 'Relire et corriger le rapport trimestriel avant soumission', 'HIGH', 'TODO', 'Travail', DATE_ADD(CURDATE(), INTERVAL 3 DAY)),
-('Réunion d''équipe', 'Préparer les points à aborder lors de la réunion hebdomadaire', 'MEDIUM', 'IN_PROGRESS', 'Réunions', DATE_ADD(CURDATE(), INTERVAL 1 DAY)),
-('Mettre à jour les dépendances', 'Vérifier et mettre à jour les packages npm du projet', 'LOW', 'TODO', 'Dev', DATE_ADD(CURDATE(), INTERVAL 7 DAY)),
-('Finir le mémoire', 'Rédiger la conclusion et la bibliographie', 'HIGH', 'LATE', 'Études', DATE_SUB(CURDATE(), INTERVAL 2 DAY)),
-('Commander fournitures', 'Commander papier, stylos et cartouches d''encre', 'LOW', 'DONE', 'Administratif', DATE_SUB(CURDATE(), INTERVAL 5 DAY));

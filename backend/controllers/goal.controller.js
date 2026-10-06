@@ -34,7 +34,7 @@ function getMonthBounds(year, month) {
 // GET /api/goals
 const getAllGoals = async (req, res) => {
   try {
-    const goals = await Goal.findAll({ order: [['created_at', 'DESC']] });
+    const goals = await Goal.findAll({ where: { user_id: req.user.id }, order: [['created_at', 'DESC']] });
     res.json({ success: true, data: goals, count: goals.length });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -44,7 +44,7 @@ const getAllGoals = async (req, res) => {
 // GET /api/goals/:id
 const getGoalById = async (req, res) => {
   try {
-    const goal = await Goal.findByPk(req.params.id);
+    const goal = await Goal.findOne({ where: { id: req.params.id, user_id: req.user.id } });
     if (!goal) return res.status(404).json({ success: false, message: 'Objectif introuvable' });
     res.json({ success: true, data: goal });
   } catch (err) {
@@ -59,7 +59,7 @@ const createGoal = async (req, res) => {
     const { title, category, annual_target, year, color, description } = req.body;
     if (!title) return res.status(400).json({ success: false, message: 'Le titre est obligatoire' });
     const target = annual_target || 365;
-    const goal = await Goal.create({ title, category, annual_target: target, year, color, description }, { transaction });
+    const goal = await Goal.create({ title, category, annual_target: target, year, color, description, user_id: req.user.id }, { transaction });
 
     // Generate steps and tasks for the next 4 weeks
     const now = new Date();
@@ -83,7 +83,8 @@ const createGoal = async (req, res) => {
         week_end: end.toISOString().split('T')[0],
         weekly_target: 5,
         description: `Étape semaine ${w} — 1 tâche par jour (Lun-Ven)`,
-        status: 'PENDING'
+        status: 'PENDING',
+        user_id: req.user.id
       }, { transaction });
 
       // Generate 5 daily tasks (Monday to Friday)
@@ -100,7 +101,8 @@ const createGoal = async (req, res) => {
           category: goal.category,
           deadline: taskDate.toISOString().split('T')[0],
           goal_id: goal.id,
-          goal_step_id: step.id
+          goal_step_id: step.id,
+          user_id: req.user.id
         }, { transaction });
       }
     }
@@ -116,7 +118,7 @@ const createGoal = async (req, res) => {
 // PUT /api/goals/:id
 const updateGoal = async (req, res) => {
   try {
-    const goal = await Goal.findByPk(req.params.id);
+    const goal = await Goal.findOne({ where: { id: req.params.id, user_id: req.user.id } });
     if (!goal) return res.status(404).json({ success: false, message: 'Objectif introuvable' });
     const { title, category, annual_target, year, color, description } = req.body;
     await goal.update({ title, category, annual_target, year, color, description });
@@ -129,7 +131,7 @@ const updateGoal = async (req, res) => {
 // DELETE /api/goals/:id
 const deleteGoal = async (req, res) => {
   try {
-    const goal = await Goal.findByPk(req.params.id);
+    const goal = await Goal.findOne({ where: { id: req.params.id, user_id: req.user.id } });
     if (!goal) return res.status(404).json({ success: false, message: 'Objectif introuvable' });
     await goal.destroy();
     res.json({ success: true, message: 'Objectif supprimé' });
@@ -146,7 +148,7 @@ const getDashboard = async (req, res) => {
     const currentWeek = getISOWeek(now);
     const currentMonth = now.getMonth() + 1;
 
-    const goals = await Goal.findAll({ where: { year }, order: [['created_at', 'DESC']] });
+    const goals = await Goal.findAll({ where: { year, user_id: req.user.id }, order: [['created_at', 'DESC']] });
 
     const yearStart = new Date(year, 0, 1);
     const yearEnd = new Date(year, 11, 31, 23, 59, 59, 999);
@@ -158,6 +160,7 @@ const getDashboard = async (req, res) => {
     // Pour chaque objectif, calculer les KPIs
     const goalsWithStats = await Promise.all(goals.map(async (goal) => {
       const whereBase = {
+        user_id: req.user.id,
         status: 'DONE',
         ...(goal.category !== 'Toutes' ? { category: goal.category } : {}),
         completed_at: { [Op.between]: [yearStart, yearEnd] }
@@ -187,6 +190,7 @@ const getDashboard = async (req, res) => {
         const { start: ws, end: we } = getWeekBounds(year, w);
         const wDone = await Task.count({
           where: {
+            user_id: req.user.id,
             status: 'DONE',
             ...(goal.category !== 'Toutes' ? { category: goal.category } : {}),
             completed_at: { [Op.between]: [yearStart, we] }
@@ -222,6 +226,7 @@ const getDashboard = async (req, res) => {
     // Alertes journalières: tâches avec deadline = aujourd'hui et status != DONE
     const dailyAlerts = await Task.findAll({
       where: {
+        user_id: req.user.id,
         deadline: {
           [Op.between]: [
             todayStart.toISOString().split('T')[0],
@@ -236,6 +241,7 @@ const getDashboard = async (req, res) => {
     // Tâches en retard (deadline dépassée et non terminées)
     const overdueTasks = await Task.findAll({
       where: {
+        user_id: req.user.id,
         deadline: { [Op.lt]: todayStart.toISOString().split('T')[0] },
         status: { [Op.notIn]: ['DONE'] }
       },
@@ -272,11 +278,11 @@ const getDashboard = async (req, res) => {
 const getGoalSteps = async (req, res) => {
   try {
     const goalId = req.params.id;
-    const goal = await Goal.findByPk(goalId);
+    const goal = await Goal.findOne({ where: { id: goalId, user_id: req.user.id } });
     if (!goal) return res.status(404).json({ success: false, message: 'Objectif introuvable' });
 
     const steps = await GoalStep.findAll({
-      where: { goal_id: goalId },
+      where: { goal_id: goalId, user_id: req.user.id },
       order: [['year', 'ASC'], ['week_number', 'ASC']]
     });
 
@@ -286,7 +292,7 @@ const getGoalSteps = async (req, res) => {
 
     const stepsWithStats = await Promise.all(steps.map(async (step) => {
       const tasks = await Task.findAll({
-        where: { goal_step_id: step.id },
+        where: { goal_step_id: step.id, user_id: req.user.id },
         order: [['deadline', 'ASC']]
       });
 
@@ -301,6 +307,7 @@ const getGoalSteps = async (req, res) => {
 
       const monthlyDone = await Task.count({
         where: {
+          user_id: req.user.id,
           goal_id: goalId,
           status: 'DONE',
           completed_at: { [Op.between]: [mStart, mEnd] }

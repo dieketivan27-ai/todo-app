@@ -5,8 +5,7 @@ const Task = require('../models/task.model');
 const getAllTasks = async (req, res) => {
   try {
     const { status, priority, category, search, sortBy = 'created_at', order = 'DESC' } = req.query;
-
-    const where = {};
+    const where = { user_id: req.user.id };
     if (status) where.status = status;
     if (priority) where.priority = priority;
     if (category) where.category = category;
@@ -31,7 +30,7 @@ const getAllTasks = async (req, res) => {
 // GET /api/tasks/:id
 const getTaskById = async (req, res) => {
   try {
-    const task = await Task.findByPk(req.params.id);
+    const task = await Task.findOne({ where: { id: req.params.id, user_id: req.user.id } });
     if (!task) return res.status(404).json({ success: false, message: 'Tâche introuvable' });
     res.json({ success: true, data: task });
   } catch (err) {
@@ -42,10 +41,10 @@ const getTaskById = async (req, res) => {
 // POST /api/tasks
 const createTask = async (req, res) => {
   try {
-    const { title, description, priority, category, deadline } = req.body;
+    const { title, description, priority, category, deadline, start_time, end_time } = req.body;
     if (!title) return res.status(400).json({ success: false, message: 'Le titre est obligatoire' });
 
-    const task = await Task.create({ title, description, priority, category, deadline });
+    const task = await Task.create({ title, description, priority, category, deadline, start_time, end_time, user_id: req.user.id });
     res.status(201).json({ success: true, data: task, message: 'Tâche créée avec succès' });
   } catch (err) {
     res.status(400).json({ success: false, message: err.message });
@@ -55,11 +54,11 @@ const createTask = async (req, res) => {
 // PUT /api/tasks/:id
 const updateTask = async (req, res) => {
   try {
-    const task = await Task.findByPk(req.params.id);
+    const task = await Task.findOne({ where: { id: req.params.id, user_id: req.user.id } });
     if (!task) return res.status(404).json({ success: false, message: 'Tâche introuvable' });
 
-    const { title, description, priority, status, category, deadline } = req.body;
-    await task.update({ title, description, priority, status, category, deadline });
+    const { title, description, priority, status, category, deadline, start_time, end_time } = req.body;
+    await task.update({ title, description, priority, status, category, deadline, start_time, end_time });
     res.json({ success: true, data: task, message: 'Tâche mise à jour' });
   } catch (err) {
     res.status(400).json({ success: false, message: err.message });
@@ -69,7 +68,7 @@ const updateTask = async (req, res) => {
 // DELETE /api/tasks/:id
 const deleteTask = async (req, res) => {
   try {
-    const task = await Task.findByPk(req.params.id);
+    const task = await Task.findOne({ where: { id: req.params.id, user_id: req.user.id } });
     if (!task) return res.status(404).json({ success: false, message: 'Tâche introuvable' });
 
     await task.destroy();
@@ -82,7 +81,7 @@ const deleteTask = async (req, res) => {
 // PATCH /api/tasks/:id/done
 const markAsDone = async (req, res) => {
   try {
-    const task = await Task.findByPk(req.params.id);
+    const task = await Task.findOne({ where: { id: req.params.id, user_id: req.user.id } });
     if (!task) return res.status(404).json({ success: false, message: 'Tâche introuvable' });
 
     await task.update({ status: 'DONE', completed_at: new Date() });
@@ -95,7 +94,7 @@ const markAsDone = async (req, res) => {
 // PATCH /api/tasks/:id/progress
 const markInProgress = async (req, res) => {
   try {
-    const task = await Task.findByPk(req.params.id);
+    const task = await Task.findOne({ where: { id: req.params.id, user_id: req.user.id } });
     if (!task) return res.status(404).json({ success: false, message: 'Tâche introuvable' });
 
     await task.update({ status: 'IN_PROGRESS', completed_at: null });
@@ -109,11 +108,11 @@ const markInProgress = async (req, res) => {
 const getStats = async (req, res) => {
   try {
     const [total, todo, inProgress, done, late] = await Promise.all([
-      Task.count(),
-      Task.count({ where: { status: 'TODO' } }),
-      Task.count({ where: { status: 'IN_PROGRESS' } }),
-      Task.count({ where: { status: 'DONE' } }),
-      Task.count({ where: { status: 'LATE' } })
+      Task.count({ where: { user_id: req.user.id } }),
+      Task.count({ where: { user_id: req.user.id, status: 'TODO' } }),
+      Task.count({ where: { user_id: req.user.id, status: 'IN_PROGRESS' } }),
+      Task.count({ where: { user_id: req.user.id, status: 'DONE' } }),
+      Task.count({ where: { user_id: req.user.id, status: 'LATE' } })
     ]);
 
     const completionRate = total > 0 ? Math.round((done / total) * 100) : 0;

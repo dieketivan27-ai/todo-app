@@ -1,37 +1,185 @@
-<!-- Chargement -->
-<div *ngIf="loading" class="space-y-3">
-  <div *ngFor="let i of [1,2,3]" class="card p-4 animate-pulse">
-    <div class="flex gap-3">
-      <div class="w-5 h-5 rounded bg-gray-200 dark:bg-gray-700 flex-shrink-0 mt-0.5"></div>
-      <div class="flex-1 space-y-2">
-        <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
-        <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
-        <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
+<div class="space-y-6 animate-fade-in">
+  
+  <!-- Header -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-extrabold text-gray-900 mb-1">Gestion des Tâches</h1>
+      <p class="text-sm text-gray-500 font-medium">Tableau d'exécution globale synchronisé avec vos jalons d'horizon.</p>
+    </div>
+    <button class="bg-[#3b28cc] hover:bg-[#3222b0] text-white px-4 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-colors flex items-center gap-2">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+      Nouvelle tâche
+    </button>
+  </div>
+
+  <!-- Filters Bar -->
+  <div class="bg-white border border-gray-100 rounded-2xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
+    <div class="flex items-center gap-4 flex-1">
+      <div class="relative max-w-sm flex-1">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        </div>
+        <input type="text" 
+          class="block w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl leading-5 bg-gray-50 placeholder-gray-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#3b28cc]/20 focus:border-[#3b28cc] transition-all sm:text-sm font-medium" 
+          placeholder="Filtrer les tâches...">
       </div>
+      
+      <select class="border border-gray-200 rounded-xl py-2 pl-4 pr-10 bg-white text-gray-700 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#3b28cc]/20 focus:border-[#3b28cc] transition-all appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M5%208l5%205%205-5%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%222%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E')] bg-[position:right_12px_center] bg-no-repeat">
+        <option>Tous les projets (3)</option>
+        <option>GestionHeures</option>
+        <option>FocusFlow</option>
+      </select>
+
+      <select class="border border-gray-200 rounded-xl py-2 pl-4 pr-10 bg-white text-gray-700 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#3b28cc]/20 focus:border-[#3b28cc] transition-all appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M5%208l5%205%205-5%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%222%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E')] bg-[position:right_12px_center] bg-no-repeat">
+        <option>Tous les statuts</option>
+      </select>
+    </div>
+    
+    <div class="text-sm font-medium text-gray-500">
+      8 tâches affichées
     </div>
   </div>
-</div>
 
-<!-- Liste -->
-<div *ngIf="!loading && tasks.length > 0" class="space-y-2">
-  <app-task-item
-    *ngFor="let task of tasks; trackBy: track"
-    [task]="task"
-    (edit)="edit.emit($event)"
-    (delete)="delete.emit($event)"
-    (markDone)="markDone.emit($event)"
-    (markInProgress)="markInProgress.emit($event)">
-  </app-task-item>
-</div>
+  <!-- Kanban Board -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    
+    <!-- Column: À Faire -->
+    <div class="flex flex-col gap-4">
+      <div class="flex items-center justify-between bg-white border border-gray-100 rounded-xl p-3 shadow-sm">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-gray-400"></span>
+          <h3 class="font-bold text-gray-700">À Faire</h3>
+        </div>
+        <span class="text-xs font-bold text-gray-500 bg-gray-100 px-2.5 py-0.5 rounded-md">2</span>
+      </div>
+      
+      <!-- Cards Container -->
+      <div class="flex flex-col gap-3">
+        <!-- Card -->
+        <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all group">
+          <div class="flex items-start gap-3">
+            <button class="mt-0.5 flex-shrink-0 w-5 h-5 rounded-md border-2 border-gray-300 hover:border-[#3b28cc] transition-colors"></button>
+            <div class="flex-1">
+              <h4 class="text-[15px] font-bold text-gray-900 leading-tight mb-3">Créer le composant Dashboard</h4>
+              <div class="flex flex-wrap items-center gap-x-3 gap-y-2 text-[11px] font-semibold text-gray-500">
+                <span class="text-[#3b28cc]">FocusFlow</span>
+                <span class="flex items-center gap-1"><svg class="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> 120m</span>
+                <span class="text-red-500 font-bold bg-red-50 px-2 py-0.5 rounded border border-red-100">Haute</span>
+              </div>
+            </div>
+            <button class="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-opacity p-1">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            </button>
+          </div>
+        </div>
 
-<!-- Vide -->
-<div *ngIf="!loading && tasks.length === 0" class="card p-12 text-center">
-  <div class="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
-    <svg class="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-    </svg>
+        <!-- Card -->
+        <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all group">
+          <div class="flex items-start gap-3">
+            <button class="mt-0.5 flex-shrink-0 w-5 h-5 rounded-md border-2 border-gray-300 hover:border-[#3b28cc] transition-colors"></button>
+            <div class="flex-1">
+              <h4 class="text-[15px] font-bold text-gray-900 leading-tight mb-3">Tester l'API REST & Intégration</h4>
+              <div class="flex flex-wrap items-center gap-x-3 gap-y-2 text-[11px] font-semibold text-gray-500">
+                <span class="text-[#3b28cc]">GestionHeures</span>
+                <span class="flex items-center gap-1"><svg class="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> 45m</span>
+                <span class="text-amber-500 font-bold bg-amber-50 px-2 py-0.5 rounded border border-amber-100">Moyenne</span>
+              </div>
+            </div>
+            <button class="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-opacity p-1">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Column: En Cours -->
+    <div class="flex flex-col gap-4">
+      <div class="flex items-center justify-between bg-amber-50 border border-amber-200 rounded-xl p-3 shadow-sm">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+          <h3 class="font-bold text-amber-900">En Cours (Focus)</h3>
+        </div>
+        <span class="text-xs font-bold text-amber-700 bg-amber-100 px-2.5 py-0.5 rounded-md">1</span>
+      </div>
+      
+      <!-- Cards Container -->
+      <div class="flex flex-col gap-3">
+        <!-- Card (Active focus) -->
+        <div class="bg-white border-2 border-amber-300 rounded-2xl p-4 shadow-md relative overflow-hidden group">
+          <div class="absolute left-0 top-0 bottom-0 w-1 bg-amber-400"></div>
+          <div class="flex items-start gap-3">
+            <button class="mt-0.5 flex-shrink-0 w-5 h-5 rounded-md border-2 border-gray-300 hover:border-[#3b28cc] transition-colors"></button>
+            <div class="flex-1">
+              <h4 class="text-[15px] font-bold text-gray-900 leading-tight mb-3">Corriger l'authentification JWT</h4>
+              <div class="flex flex-wrap items-center gap-x-3 gap-y-2 text-[11px] font-semibold text-gray-500">
+                <span class="text-[#3b28cc]">GestionHeures</span>
+                <span class="flex items-center gap-1"><svg class="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> 90m</span>
+                <span class="text-red-500 font-bold bg-red-50 px-2 py-0.5 rounded border border-red-100">Haute</span>
+              </div>
+            </div>
+            <button class="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-opacity p-1">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Column: Terminées -->
+    <div class="flex flex-col gap-4">
+      <div class="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-xl p-3 shadow-sm">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+          <h3 class="font-bold text-emerald-900">Terminées</h3>
+        </div>
+        <span class="text-xs font-bold text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-md">5</span>
+      </div>
+      
+      <!-- Cards Container -->
+      <div class="flex flex-col gap-3">
+        <!-- Completed Card 1 -->
+        <div class="bg-gray-50 border border-gray-100 rounded-2xl p-4 opacity-75 group">
+          <div class="flex items-start gap-3">
+            <button class="mt-0.5 flex-shrink-0 w-5 h-5 rounded-md bg-[#3b28cc] border-2 border-[#3b28cc] flex items-center justify-center">
+              <svg class="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+            </button>
+            <div class="flex-1">
+              <h4 class="text-[15px] font-medium text-gray-500 line-through leading-tight mb-3">Bloquant CORS sur les routes API</h4>
+              <div class="flex flex-wrap items-center gap-x-3 gap-y-2 text-[11px] font-semibold text-gray-400">
+                <span class="text-[#3b28cc]">GestionHeures</span>
+                <span class="flex items-center gap-1"><svg class="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> 30m</span>
+                <span class="text-red-400 font-bold bg-red-50/50 px-2 py-0.5 rounded border border-red-100/50">Haute</span>
+              </div>
+            </div>
+            <button class="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-opacity p-1">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            </button>
+          </div>
+        </div>
+        
+        <!-- Completed Card 2 -->
+        <div class="bg-gray-50 border border-gray-100 rounded-2xl p-4 opacity-75 group">
+          <div class="flex items-start gap-3">
+            <button class="mt-0.5 flex-shrink-0 w-5 h-5 rounded-md bg-[#3b28cc] border-2 border-[#3b28cc] flex items-center justify-center">
+              <svg class="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+            </button>
+            <div class="flex-1">
+              <h4 class="text-[15px] font-medium text-gray-500 line-through leading-tight mb-3">Sécurité validations JWT tokens</h4>
+              <div class="flex flex-wrap items-center gap-x-3 gap-y-2 text-[11px] font-semibold text-gray-400">
+                <span class="text-[#3b28cc]">GestionHeures</span>
+                <span class="flex items-center gap-1"><svg class="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> 45m</span>
+                <span class="text-red-400 font-bold bg-red-50/50 px-2 py-0.5 rounded border border-red-100/50">Haute</span>
+              </div>
+            </div>
+            <button class="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-opacity p-1">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
   </div>
-  <p class="text-gray-500 dark:text-gray-400 font-medium">Aucune tâche trouvée</p>
-  <p class="text-gray-400 dark:text-gray-500 text-sm mt-1">Créez votre première tâche ou modifiez les filtres</p>
 </div>

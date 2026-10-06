@@ -39,6 +39,10 @@ const GoalStep = sequelize.define('GoalStep', {
   status: {
     type: DataTypes.ENUM('PENDING', 'IN_PROGRESS', 'DONE'),
     defaultValue: 'PENDING'
+  },
+  user_id: {
+    type: DataTypes.INTEGER,
+    allowNull: true
   }
 }, {
   tableName: 'goal_steps',

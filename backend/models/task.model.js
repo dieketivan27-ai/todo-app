@@ -46,6 +46,18 @@ const Task = sequelize.define('Task', {
   goal_step_id: {
     type: DataTypes.INTEGER,
     allowNull: true
+  },
+  user_id: {
+    type: DataTypes.INTEGER,
+    allowNull: true
+  },
+  start_time: {
+    type: DataTypes.TIME,
+    allowNull: true
+  },
+  end_time: {
+    type: DataTypes.TIME,
+    allowNull: true
   }
 }, {
   tableName: 'tasks',

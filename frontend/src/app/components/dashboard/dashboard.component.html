@@ -1,0 +1,89 @@
+<div class="min-h-screen bg-slate-50">
+
+  <!-- Header -->
+  <app-header></app-header>
+
+  <!-- Main content -->
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+
+    <!-- Onglets -->
+    <div class="flex border-b border-gray-200 mb-6 gap-6">
+      <button
+        (click)="activeTab.set('tasks')"
+        [class]="activeTab() === 'tasks' ? 'tab-active' : 'tab-inactive'"
+        class="tab-base">
+        Tâches
+      </button>
+      <button
+        (click)="activeTab.set('goals')"
+        [class]="activeTab() === 'goals' ? 'tab-active' : 'tab-inactive'"
+        class="tab-base">
+        Objectifs & Évolution
+      </button>
+    </div>
+
+    <!-- Onglet Tâches -->
+    <ng-container *ngIf="activeTab() === 'tasks'">
+      <!-- Stats -->
+    <app-stats [stats]="stats()"></app-stats>
+
+    <!-- Barre d'actions -->
+    <div class="flex items-center justify-between gap-4">
+      <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+        Mes tâches
+        <span class="ml-2 text-sm font-normal text-gray-400 dark:text-gray-500">
+          ({{ tasks().length }})
+        </span>
+      </h2>
+      <button (click)="openCreateForm()" class="btn-primary">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+        Nouvelle tâche
+      </button>
+    </div>
+
+    <!-- Filtres -->
+    <app-filters (filtersChange)="onFiltersChange($event)"></app-filters>
+
+    <!-- Liste -->
+    <app-task-list
+      [tasks]="tasks()"
+      [loading]="loading()"
+      (edit)="openEditForm($event)"
+      (delete)="onDelete($event)"
+      (markDone)="onMarkDone($event)"
+      (markInProgress)="onMarkInProgress($event)">
+    </app-task-list>
+    </ng-container>
+
+    <!-- Onglet Objectifs -->
+    <ng-container *ngIf="activeTab() === 'goals'">
+      <app-goals-dashboard></app-goals-dashboard>
+    </ng-container>
+
+  </main>
+
+  <!-- Formulaire modal -->
+  <app-task-form
+    *ngIf="showForm()"
+    [task]="editingTask()"
+    (save)="onSave($event)"
+    (cancel)="closeForm()">
+  </app-task-form>
+
+  <!-- Toast notification -->
+  <div *ngIf="toastMessage()"
+    class="fixed bottom-4 right-4 z-50 px-4 py-3 rounded-xl shadow-lg text-sm font-medium flex items-center gap-2 animate-slide-up"
+    [class.bg-gray-900]="toastType() === 'success'"
+    [class.text-white]="toastType() === 'success'"
+    [class.bg-red-500]="toastType() === 'error'"
+    [class.text-white]="toastType() === 'error'">
+    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path *ngIf="toastType() === 'success'" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+      <path *ngIf="toastType() === 'error'" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+    </svg>
+    {{ toastMessage() }}
+  </div>
+
+</div>

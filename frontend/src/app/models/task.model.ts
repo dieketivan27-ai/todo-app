@@ -9,6 +9,8 @@ export interface Task {
   status: Status;
   category: string;
   deadline?: string;
+  start_time?: string;
+  end_time?: string;
   created_at: string;
   updated_at: string;
   completed_at?: string;
@@ -20,6 +22,8 @@ export interface TaskCreate {
   priority: Priority;
   category: string;
   deadline?: string;
+  start_time?: string;
+  end_time?: string;
 }
 
 export interface TaskUpdate extends Partial<TaskCreate> {
