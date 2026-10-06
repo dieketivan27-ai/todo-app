@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { TaskService } from '../../services/task.service';
+import { ProjectService } from '../../services/project.service';
 import { TaskStats } from '../../models/task.model';
 
 @Component({
@@ -84,7 +85,7 @@ import { TaskStats } from '../../models/task.model';
             </svg>
             Projets
           </div>
-          <span class="bg-gray-100 text-gray-600 text-xs font-bold px-2 py-0.5 rounded-full">3</span>
+          <span class="bg-gray-100 text-gray-600 text-xs font-bold px-2 py-0.5 rounded-full">{{ projectCount() }}</span>
         </a>
 
         <!-- Planning -->
@@ -130,10 +131,13 @@ export class SidebarComponent implements OnInit {
   auth = inject(AuthService);
   router = inject(Router);
   private taskService = inject(TaskService);
+  private projectService = inject(ProjectService);
 
   stats = signal<TaskStats | null>(null);
+  projectCount = signal<number>(0);
 
   ngOnInit() {
     this.taskService.getStats().subscribe({ next: s => this.stats.set(s), error: () => {} });
+    this.projectService.getAll().subscribe({ next: p => this.projectCount.set(p.length), error: () => {} });
   }
 }
