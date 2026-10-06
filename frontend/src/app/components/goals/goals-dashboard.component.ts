@@ -115,10 +115,9 @@ export class GoalsDashboardComponent implements OnInit {
 
   loadGoals() {
     this.loading.set(true);
-    this.goalService.getAll().subscribe({
-      next: (goals) => {
-        // Filter by selected year
-        this.goals.set(goals.filter(g => g.year === this.selectedYear()));
+    this.goalService.getDashboard(this.selectedYear()).subscribe({
+      next: (dashboard) => {
+        this.goals.set(dashboard.goals);
         this.loading.set(false);
       },
       error: () => this.loading.set(false)

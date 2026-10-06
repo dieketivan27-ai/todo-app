@@ -10,6 +10,7 @@ import { GoalsDashboardComponent } from './components/goals/goals-dashboard.comp
 import { ProjectsComponent } from './components/projects/projects.component';
 import { AnalyticsComponent } from './components/analytics/analytics.component';
 import { PlanningComponent } from './components/planning/planning.component';
+import { ProfileComponent } from './components/profile/profile.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -26,6 +27,7 @@ export const routes: Routes = [
       { path: 'projects', component: ProjectsComponent },
       { path: 'planning', component: PlanningComponent },
       { path: 'analytics', component: AnalyticsComponent },
+      { path: 'profile', component: ProfileComponent },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
   },
