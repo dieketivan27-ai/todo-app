@@ -108,12 +108,10 @@ Render permet d'héberger gratuitement une base PostgreSQL et un Web Service Nod
 3. Cliquez sur **New > Web Service** > Sélectionnez votre dépôt GitHub.
 4. Modifiez le **Root Directory** en `backend`. La commande de build doit être `npm install` et celle de démarrage `node app.js`.
 5. Dans l'onglet *Environment*, ajoutez :
-   - `DB_HOST` : Le nom d'hôte de la base PostgreSQL sur Render
-   - `DB_USER` : Le nom d'utilisateur (souvent égal au nom de la DB)
-   - `DB_PASSWORD` : Le mot de passe généré
-   - `DB_NAME` : Le nom de la DB
+   - `DATABASE_URL` : L'URL de connexion interne fournie par la base PostgreSQL de Render (Internal Database URL).
+   - `NODE_ENV` : `production`
+   - `FRONTEND_URL` : L'URL publique de votre frontend Vercel (ex: `https://votre-app-frontend.vercel.app`)
    - `JWT_SECRET` : Une clé secrète générée aléatoirement.
-   *(Ou ajoutez directement `DATABASE_URL` si vous modifiez la connexion Sequelize pour l'utiliser).*
 
 ### 2. Frontend (Vercel)
 Un fichier `vercel.json` a été ajouté dans le dossier `frontend` pour gérer le routing et le proxy vers l'API.
