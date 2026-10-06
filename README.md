@@ -3,7 +3,7 @@
 Application avancée de productivité et de gestion de tâches.
 Elle inclut une interface riche (Kanban, Dashboard, Focus), une gestion des objectifs, des statistiques, et une authentification sécurisée.
 
-**Stack :** Angular 18 (Standalone) + Tailwind CSS · Node.js/Express · MySQL · Docker Compose
+**Stack :** Angular 18 (Standalone) + Tailwind CSS · Node.js/Express · PostgreSQL · Docker Compose
 
 ---
 
@@ -19,7 +19,7 @@ docker-compose up -d --build
 Accès :
 - **Frontend :** http://localhost:4200 (Redirige vers `/login`)
 - **API :** http://localhost:3000/api
-- **MySQL :** localhost:3306
+- **PostgreSQL :** localhost:5432
 
 > **Note :** Créez un nouveau compte depuis l'interface `/register` pour commencer, la base de données est initialisée vide pour chaque nouvel utilisateur.
 
@@ -97,20 +97,23 @@ todo-app/
 
 ---
 
-## 🌍 Déploiement (Vercel & Railway)
+## 🌍 Déploiement (Render & Vercel)
 
 Le projet est configuré pour être déployé facilement et gratuitement sur le cloud.
 
-### 1. Backend (Railway)
-Railway détecte automatiquement l'API Node.js.
-1. Créez un compte sur [Railway](https://railway.app).
-2. Créez un **Nouveau Projet** > **Deploy from GitHub repo**.
-3. Choisissez ce dépôt. Modifiez le *Root Directory* sur `backend` dans les paramètres.
-4. Ajoutez une base de données MySQL via le bouton `New` dans votre projet Railway.
-5. Dans les paramètres (Variables) du service backend, ajoutez :
-   - `DATABASE_URL` : L'URL de connexion fournie par la base MySQL de Railway.
+### 1. Base de données & Backend (Render)
+Render permet d'héberger gratuitement une base PostgreSQL et un Web Service Node.js.
+1. Créez un compte sur [Render](https://render.com).
+2. Cliquez sur **New > PostgreSQL**. Nommez la base, laissez la version par défaut et cliquez sur *Create Database*. Copiez l'URL de connexion interne (`Internal Database URL`).
+3. Cliquez sur **New > Web Service** > Sélectionnez votre dépôt GitHub.
+4. Modifiez le **Root Directory** en `backend`. La commande de build doit être `npm install` et celle de démarrage `node app.js`.
+5. Dans l'onglet *Environment*, ajoutez :
+   - `DB_HOST` : Le nom d'hôte de la base PostgreSQL sur Render
+   - `DB_USER` : Le nom d'utilisateur (souvent égal au nom de la DB)
+   - `DB_PASSWORD` : Le mot de passe généré
+   - `DB_NAME` : Le nom de la DB
    - `JWT_SECRET` : Une clé secrète générée aléatoirement.
-   - `PORT` : `3000` (ou laissez Railway le configurer).
+   *(Ou ajoutez directement `DATABASE_URL` si vous modifiez la connexion Sequelize pour l'utiliser).*
 
 ### 2. Frontend (Vercel)
 Un fichier `vercel.json` a été ajouté dans le dossier `frontend` pour gérer le routing et le proxy vers l'API.
@@ -120,4 +123,4 @@ Un fichier `vercel.json` a été ajouté dans le dossier `frontend` pour gérer 
    - **Framework Preset** : Angular
    - **Root Directory** : Sélectionnez le dossier `frontend`
    - Cliquez sur **Deploy**.
-4. ⚠️ **Très important** : Avant le déploiement ou juste après, allez dans le dossier `frontend` de votre code source, ouvrez `vercel.json` et remplacez `https://VOTRE_APP_RAILWAY.up.railway.app` par l'URL publique générée par Railway. Commitez et pushez ce changement.
+4. ⚠️ **Très important** : Avant le déploiement ou juste après, allez dans le dossier `frontend` de votre code source, ouvrez `vercel.json` et remplacez `https://VOTRE_APP.up.railway.app` par l'URL publique générée par le Web Service Render (ex: `https://votre-app-backend.onrender.com`). Commitez et pushez ce changement.

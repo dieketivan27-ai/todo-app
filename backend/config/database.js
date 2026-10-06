@@ -7,7 +7,7 @@ const sequelize = new Sequelize(
   process.env.DB_PASSWORD,
   {
     host: process.env.DB_HOST,
-    dialect: 'mysql',
+    dialect: 'postgres',
     logging: false,
     pool: {
       max: 10,
@@ -23,15 +23,15 @@ const connectDB = async () => {
   while (retries) {
     try {
       await sequelize.authenticate();
-      console.log('✅ Connexion MySQL établie');
+      console.log('✅ Connexion PostgreSQL établie');
       return;
     } catch (err) {
       retries--;
-      console.log(`⏳ MySQL non prêt, tentative dans 3s... (${retries} restantes)`);
+      console.log(`⏳ PostgreSQL non prêt, tentative dans 3s... (${retries} restantes)`);
       await new Promise(res => setTimeout(res, 3000));
     }
   }
-  throw new Error('❌ Impossible de se connecter à MySQL');
+  throw new Error('❌ Impossible de se connecter à PostgreSQL');
 };
 
 module.exports = { sequelize, connectDB };

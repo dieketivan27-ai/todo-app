@@ -1,16 +1,1 @@
-CREATE DATABASE IF NOT EXISTS tododb;
-USE tododb;
-
-CREATE TABLE IF NOT EXISTS tasks (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  title VARCHAR(255) NOT NULL,
-  description TEXT,
-  priority ENUM('LOW', 'MEDIUM', 'HIGH') DEFAULT 'MEDIUM',
-  status ENUM('TODO', 'IN_PROGRESS', 'DONE', 'LATE') DEFAULT 'TODO',
-  category VARCHAR(100) DEFAULT 'Général',
-  deadline DATE,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  completed_at TIMESTAMP NULL
-);
-
+-- Fichier vidé : La création des tables est gérée par sequelize.sync() dans app.js.
