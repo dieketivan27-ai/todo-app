@@ -1,11 +1,11 @@
 {
   "version": 2,
-  "buildCommand": "npm install && npm run build",
+  "buildCommand": "npx ng build",
   "outputDirectory": "dist/frontend/browser",
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://VOTRE_APP_RAILWAY.up.railway.app/api/$1"
+      "destination": "https://VOTRE_APP_BACKEND.onrender.com/api/$1"
     },
     {
       "source": "/(.*)",
