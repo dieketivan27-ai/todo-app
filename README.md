@@ -94,3 +94,30 @@ todo-app/
 - ✅ **Mode Focus ("Ma Journée")** : Interface dédiée pour accomplir ses tâches urgentes.
 - ✅ **Empty States (États Vides)** : Interfaces amicales et illustrations pour guider l'utilisateur lors de son inscription.
 - ✅ **Responsive & Moderne** : Conçu avec TailwindCSS, utilisation d'effets Glassmorphism et d'animations subtiles.
+
+---
+
+## 🌍 Déploiement (Vercel & Railway)
+
+Le projet est configuré pour être déployé facilement et gratuitement sur le cloud.
+
+### 1. Backend (Railway)
+Railway détecte automatiquement l'API Node.js.
+1. Créez un compte sur [Railway](https://railway.app).
+2. Créez un **Nouveau Projet** > **Deploy from GitHub repo**.
+3. Choisissez ce dépôt. Modifiez le *Root Directory* sur `backend` dans les paramètres.
+4. Ajoutez une base de données MySQL via le bouton `New` dans votre projet Railway.
+5. Dans les paramètres (Variables) du service backend, ajoutez :
+   - `DATABASE_URL` : L'URL de connexion fournie par la base MySQL de Railway.
+   - `JWT_SECRET` : Une clé secrète générée aléatoirement.
+   - `PORT` : `3000` (ou laissez Railway le configurer).
+
+### 2. Frontend (Vercel)
+Un fichier `vercel.json` a été ajouté dans le dossier `frontend` pour gérer le routing et le proxy vers l'API.
+1. Créez un compte sur [Vercel](https://vercel.com).
+2. Ajoutez un **Nouveau Projet** > Importez ce dépôt GitHub.
+3. Dans la configuration :
+   - **Framework Preset** : Angular
+   - **Root Directory** : Sélectionnez le dossier `frontend`
+   - Cliquez sur **Deploy**.
+4. ⚠️ **Très important** : Avant le déploiement ou juste après, allez dans le dossier `frontend` de votre code source, ouvrez `vercel.json` et remplacez `https://VOTRE_APP_RAILWAY.up.railway.app` par l'URL publique générée par Railway. Commitez et pushez ce changement.
