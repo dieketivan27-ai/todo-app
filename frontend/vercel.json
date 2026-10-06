@@ -5,7 +5,7 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://VOTRE_APP_BACKEND.onrender.com/api/$1"
+      "destination": "https://todo-app-lnuk.onrender.com/api/$1"
     },
     {
       "source": "/(.*)",
