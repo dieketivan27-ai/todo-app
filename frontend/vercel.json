@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "npx ng build",
+  "buildCommand": "node node_modules/@angular/cli/bin/ng build",
   "outputDirectory": "dist/frontend/browser",
   "rewrites": [
     {
