@@ -12,7 +12,8 @@ const startCronJobs = () => {
         {
           where: {
             deadline: { [Op.lt]: today },
-            status: { [Op.in]: ['TODO', 'IN_PROGRESS'] }
+            status: { [Op.in]: ['TODO', 'IN_PROGRESS'] },
+            freq_type: { [Op.ne]: 'weekly_until_done' }
           }
         }
       );
@@ -123,6 +124,11 @@ const startCronJobs = () => {
     } catch (err) {
       console.error('❌ [CRON] Erreur génération étapes futures:', err.message);
     }
+  });
+
+  // Le planning hebdomadaire des variables d'action est calculé à la volée (GET /api/planning/week).
+  cron.schedule('0 6 * * 1', () => {
+    console.log('📅 [CRON] Nouvelle semaine — les créneaux objectifs seront régénérés à la prochaine consultation du planning');
   });
 
   console.log('⏰ Tâches automatiques (cron) démarrées');

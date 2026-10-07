@@ -698,7 +698,8 @@ export class ScanDocumentComponent implements OnDestroy {
       annual_target: goal.annual_target || 52,
       year: year || new Date().getFullYear(),
       color: goal.color || '#6366f1',
-      description: goal.description || ''
+      description: goal.description || '',
+      action_variables: goal.actions?.length ? goal.actions : undefined
     };
   }
 

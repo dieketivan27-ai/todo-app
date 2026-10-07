@@ -1,6 +1,8 @@
 export type Priority = 'LOW' | 'MEDIUM' | 'HIGH';
 export type Status = 'TODO' | 'IN_PROGRESS' | 'DONE' | 'LATE';
 
+export type FreqType = 'once' | 'weekly_until_done';
+
 export interface Task {
   id: number;
   title: string;
@@ -11,9 +13,34 @@ export interface Task {
   deadline?: string;
   start_time?: string;
   end_time?: string;
+  goal_id?: number;
+  goal_step_id?: number;
+  freq_type?: FreqType;
+  recurrence_hebdomadaire?: boolean;
+  jours_assignes?: string[] | null;
+  action_index?: number;
   created_at: string;
   updated_at: string;
   completed_at?: string;
+}
+
+export interface PlanningSlot extends Task {
+  is_action_variable: boolean;
+  is_generated_slot: boolean;
+  goal_title?: string | null;
+  goal_color?: string | null;
+}
+
+export interface WeekPlanning {
+  week: {
+    number: number;
+    year: number;
+    start: string;
+    end: string;
+    day_labels: string[];
+  };
+  slots: PlanningSlot[];
+  by_day: Record<string, PlanningSlot[]>;
 }
 
 export interface TaskCreate {
@@ -103,6 +130,11 @@ export interface Goal {
   weeklyData: WeeklyPoint[];
 }
 
+export interface ActionVariableCreate {
+  title: string;
+  jours_assignes?: string[];
+}
+
 export interface GoalCreate {
   title: string;
   category: string;
@@ -110,6 +142,7 @@ export interface GoalCreate {
   year: number;
   color: string;
   description?: string;
+  action_variables?: (string | ActionVariableCreate)[];
 }
 
 export interface DashboardSummary {

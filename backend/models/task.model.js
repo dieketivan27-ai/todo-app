@@ -58,6 +58,23 @@ const Task = sequelize.define('Task', {
   end_time: {
     type: DataTypes.TIME,
     allowNull: true
+  },
+  freq_type: {
+    type: DataTypes.ENUM('once', 'weekly_until_done'),
+    defaultValue: 'once',
+    allowNull: false
+  },
+  recurrence_hebdomadaire: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
+  },
+  jours_assignes: {
+    type: DataTypes.JSON,
+    allowNull: true
+  },
+  action_index: {
+    type: DataTypes.INTEGER,
+    allowNull: true
   }
 }, {
   tableName: 'tasks',

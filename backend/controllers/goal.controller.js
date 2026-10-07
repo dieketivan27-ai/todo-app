@@ -3,6 +3,7 @@ const { sequelize } = require('../config/database');
 const Goal = require('../models/goal.model');
 const GoalStep = require('../models/goal_step.model');
 const Task = require('../models/task.model');
+const { createActionVariableTask, createActionVariablesFromList } = require('../services/actionVariable.service');
 
 // Utilitaire: numéro de semaine ISO
 function getISOWeek(date) {
@@ -56,10 +57,15 @@ const getGoalById = async (req, res) => {
 const createGoal = async (req, res) => {
   const transaction = await sequelize.transaction();
   try {
-    const { title, category, annual_target, year, color, description } = req.body;
+    const { title, category, annual_target, year, color, description, action_variables } = req.body;
     if (!title) return res.status(400).json({ success: false, message: 'Le titre est obligatoire' });
     const target = annual_target || 365;
     const goal = await Goal.create({ title, category, annual_target: target, year, color, description, user_id: req.user.id }, { transaction });
+
+    if (Array.isArray(action_variables) && action_variables.length > 0) {
+      const titles = action_variables.map(v => (typeof v === 'string' ? v : v.title)).filter(Boolean);
+      await createActionVariablesFromList(goal, titles, req.user.id, transaction);
+    }
 
     // Generate steps and tasks for the next 4 weeks
     const now = new Date();
@@ -176,8 +182,8 @@ const getDashboard = async (req, res) => {
     const goalsWithStats = await Promise.all(goals.map(async (goal) => {
       const whereBase = {
         user_id: req.user.id,
+        goal_id: goal.id,
         status: 'DONE',
-        ...(goal.category !== 'Toutes' ? { category: goal.category } : {}),
         completed_at: { [Op.between]: [yearStart, yearEnd] }
       };
 
@@ -220,8 +226,8 @@ const getDashboard = async (req, res) => {
         const wDone = await Task.count({
           where: {
             user_id: req.user.id,
+            goal_id: goal.id,
             status: 'DONE',
-            ...(goal.category !== 'Toutes' ? { category: goal.category } : {}),
             completed_at: { [Op.between]: [yearStart, we] }
           }
         });
@@ -381,4 +387,83 @@ const getGoalSteps = async (req, res) => {
   }
 };
 
-module.exports = { getAllGoals, getGoalById, createGoal, updateGoal, deleteGoal, getDashboard, getGoalSteps };
+// GET /api/goals/:id/action-variables
+const getActionVariables = async (req, res) => {
+  try {
+    const goal = await Goal.findOne({ where: { id: req.params.id, user_id: req.user.id } });
+    if (!goal) return res.status(404).json({ success: false, message: 'Objectif introuvable' });
+
+    const tasks = await Task.findAll({
+      where: {
+        goal_id: goal.id,
+        user_id: req.user.id,
+        freq_type: 'weekly_until_done'
+      },
+      order: [['action_index', 'ASC'], ['id', 'ASC']]
+    });
+
+    res.json({ success: true, data: tasks, count: tasks.length });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// POST /api/goals/:id/action-variables
+const createActionVariable = async (req, res) => {
+  try {
+    const goal = await Goal.findOne({ where: { id: req.params.id, user_id: req.user.id } });
+    if (!goal) return res.status(404).json({ success: false, message: 'Objectif introuvable' });
+
+    const { title, jours_assignes } = req.body;
+    if (!title || !String(title).trim()) {
+      return res.status(400).json({ success: false, message: 'Le titre de la variable d\'action est obligatoire' });
+    }
+
+    const task = await createActionVariableTask({
+      goal,
+      title: String(title),
+      userId: req.user.id,
+      jours_assignes: jours_assignes || null
+    });
+
+    res.status(201).json({ success: true, data: task, message: 'Variable d\'action créée' });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
+  }
+};
+
+// DELETE /api/goals/:id/action-variables/:taskId
+const deleteActionVariable = async (req, res) => {
+  try {
+    const goal = await Goal.findOne({ where: { id: req.params.id, user_id: req.user.id } });
+    if (!goal) return res.status(404).json({ success: false, message: 'Objectif introuvable' });
+
+    const task = await Task.findOne({
+      where: {
+        id: req.params.taskId,
+        goal_id: goal.id,
+        user_id: req.user.id,
+        freq_type: 'weekly_until_done'
+      }
+    });
+    if (!task) return res.status(404).json({ success: false, message: 'Variable d\'action introuvable' });
+
+    await task.destroy();
+    res.json({ success: true, message: 'Variable d\'action supprimée' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+module.exports = {
+  getAllGoals,
+  getGoalById,
+  createGoal,
+  updateGoal,
+  deleteGoal,
+  getDashboard,
+  getGoalSteps,
+  getActionVariables,
+  createActionVariable,
+  deleteActionVariable
+};

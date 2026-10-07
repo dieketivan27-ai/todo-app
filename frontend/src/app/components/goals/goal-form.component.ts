@@ -50,6 +50,13 @@ import { GoalCreate, CATEGORIES, GOAL_COLORS } from '../../models/task.model';
         <textarea [(ngModel)]="form.description" class="field-input" rows="2" placeholder="Décrivez cet objectif..."></textarea>
       </div>
 
+      <div class="field-group" *ngIf="!isEdit">
+        <label class="field-label">Variables d'action (optionnel)</label>
+        <textarea [(ngModel)]="actionVariablesText" class="field-input" rows="3"
+          placeholder="Une action par ligne — ex:&#10;Préparer la revue mensuelle&#10;Mettre à jour le tableau KPI"></textarea>
+        <p class="text-[11px] text-gray-400 mt-1">Chaque ligne devient une tâche récurrente dans le planning jusqu'à complétion.</p>
+      </div>
+
       <!-- Couleur -->
       <div class="field-group">
         <label class="field-label">Couleur</label>
@@ -95,6 +102,8 @@ export class GoalFormComponent implements OnInit {
     description: ''
   };
 
+  actionVariablesText = '';
+
 
 
   ngOnInit() {
@@ -105,7 +114,14 @@ export class GoalFormComponent implements OnInit {
 
   onSave() {
     if (!this.form.title) return;
-    this.save.emit({ ...this.form });
+    const payload: GoalCreate = { ...this.form };
+    if (!this.isEdit && this.actionVariablesText.trim()) {
+      payload.action_variables = this.actionVariablesText
+        .split('\n')
+        .map(l => l.trim())
+        .filter(Boolean);
+    }
+    this.save.emit(payload);
   }
 
   onCancel() {

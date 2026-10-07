@@ -4,6 +4,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { Goal } from '../../models/task.model';
 import { GoalStepsComponent } from './goal-steps.component';
+import { GoalActionVariablesComponent } from './goal-action-variables.component';
 import { Chart, LineElement, PointElement, LinearScale, CategoryScale, Filler, Tooltip, Legend, LineController } from 'chart.js';
 
 Chart.register(LineElement, PointElement, LinearScale, CategoryScale, Filler, Tooltip, Legend, LineController);
@@ -11,7 +12,7 @@ Chart.register(LineElement, PointElement, LinearScale, CategoryScale, Filler, To
 @Component({
   selector: 'app-goal-card',
   standalone: true,
-  imports: [CommonModule, GoalStepsComponent],
+  imports: [CommonModule, GoalStepsComponent, GoalActionVariablesComponent],
   template: `
 <div class="goal-card" [class.goal-late]="goal.stats.isLate">
 
@@ -94,6 +95,8 @@ Chart.register(LineElement, PointElement, LinearScale, CategoryScale, Filler, To
   <div class="chart-wrap" *ngIf="goal.weeklyData && goal.weeklyData.length > 1">
     <canvas #chartCanvas></canvas>
   </div>
+
+  <app-goal-action-variables [goalId]="goal.id"></app-goal-action-variables>
 
   <!-- Étapes hebdomadaires -->
   <div class="flex justify-center pt-2">

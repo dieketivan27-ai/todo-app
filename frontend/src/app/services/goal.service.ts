@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { Goal, GoalCreate, GoalDashboard, GoalStep } from '../models/task.model';
+import { Goal, GoalCreate, GoalDashboard, GoalStep, Task, ActionVariableCreate } from '../models/task.model';
 
 interface ApiResponse<T> {
   success: boolean;
@@ -50,5 +50,19 @@ export class GoalService {
   getSteps(id: number): Observable<GoalStep[]> {
     return this.http.get<ApiResponse<GoalStep[]>>(`${this.baseUrl}/${id}/steps`)
       .pipe(map(r => r.data));
+  }
+
+  getActionVariables(goalId: number): Observable<Task[]> {
+    return this.http.get<ApiResponse<Task[]>>(`${this.baseUrl}/${goalId}/action-variables`)
+      .pipe(map(r => r.data));
+  }
+
+  createActionVariable(goalId: number, payload: ActionVariableCreate): Observable<Task> {
+    return this.http.post<ApiResponse<Task>>(`${this.baseUrl}/${goalId}/action-variables`, payload)
+      .pipe(map(r => r.data));
+  }
+
+  deleteActionVariable(goalId: number, taskId: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${goalId}/action-variables/${taskId}`);
   }
 }
