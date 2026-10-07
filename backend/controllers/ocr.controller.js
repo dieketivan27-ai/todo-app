@@ -1,7 +1,13 @@
 const { GoogleGenAI } = require('@google/genai');
 const fs = require('fs');
+const sharp = require('sharp');
 
 const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+
+// Image limits before sending to Gemini
+const MAX_IMAGE_PX  = 1600;  // max width or height in pixels
+const MAX_IMAGE_KB  = 1500;  // max size in KB (~1.5 MB)
+const GEMINI_TIMEOUT_MS = 25000; // 25s — below Render's 30s timeout
 
 const PROMPT = `Tu es un assistant expert en extraction de données structurées depuis des documents RH et de planification.
 
@@ -34,6 +40,59 @@ Règles importantes:
 
 const MODEL_NAME = 'gemini-3.8-flash';
 
+/**
+ * Compress and resize an image buffer using sharp.
+ * Ensures the image fits within MAX_IMAGE_PX and MAX_IMAGE_KB.
+ * Returns { buffer, mimeType } with the optimized image.
+ */
+async function compressImage(inputBuffer) {
+  let img = sharp(inputBuffer).rotate(); // auto-orient from EXIF
+
+  const meta = await img.metadata();
+  const originalKB = Math.round(inputBuffer.length / 1024);
+  console.log(`[OCR] Image reçue : ${originalKB} Ko, ${meta.width}x${meta.height}px`);
+
+  // Resize only if necessary
+  if (meta.width > MAX_IMAGE_PX || meta.height > MAX_IMAGE_PX) {
+    img = img.resize(MAX_IMAGE_PX, MAX_IMAGE_PX, { fit: 'inside', withoutEnlargement: true });
+  }
+
+  // Convert to JPEG and compress
+  let quality = 85;
+  let outputBuffer = await img.jpeg({ quality }).toBuffer();
+
+  // Reduce quality further if still too large
+  while (outputBuffer.length > MAX_IMAGE_KB * 1024 && quality > 40) {
+    quality -= 15;
+    outputBuffer = await sharp(inputBuffer)
+      .rotate()
+      .resize(MAX_IMAGE_PX, MAX_IMAGE_PX, { fit: 'inside', withoutEnlargement: true })
+      .jpeg({ quality })
+      .toBuffer();
+  }
+
+  const finalKB = Math.round(outputBuffer.length / 1024);
+  console.log(`[OCR] Image compressée : ${finalKB} Ko (qualité JPEG: ${quality}%)`);
+
+  return { buffer: outputBuffer, mimeType: 'image/jpeg' };
+}
+
+/**
+ * Wraps a promise with an AbortController-based timeout.
+ * Throws a specific TIMEOUT error if the deadline is exceeded.
+ */
+function withTimeout(promise, ms) {
+  let timer;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => {
+      const err = new Error('GEMINI_TIMEOUT');
+      err.isTimeout = true;
+      reject(err);
+    }, ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+}
+
 const analyzeDocument = async (req, res) => {
   try {
     if (!req.file) {
@@ -47,12 +106,12 @@ const analyzeDocument = async (req, res) => {
       });
     }
 
-    // Read image file as base64
-    const imageData = fs.readFileSync(req.file.path);
-    const base64Image = imageData.toString('base64');
-    const mimeType = req.file.mimetype;
+    // Read and compress image
+    const rawBuffer = fs.readFileSync(req.file.path);
+    const { buffer: imageBuffer, mimeType } = await compressImage(rawBuffer);
+    const base64Image = imageBuffer.toString('base64');
 
-    // Call Gemini Vision with new @google/genai SDK (with exponential backoff retry)
+    // Call Gemini with exponential backoff retry
     let response;
     let retries = 0;
     const maxRetries = 3;
@@ -60,33 +119,37 @@ const analyzeDocument = async (req, res) => {
 
     while (true) {
       try {
-        response = await genAI.models.generateContent({
-          model: MODEL_NAME,
-          contents: [
-            {
-              parts: [
-                { text: PROMPT },
-                {
-                  inlineData: {
-                    data: base64Image,
-                    mimeType: mimeType
-                  }
-                }
-              ]
-            }
-          ]
-        });
-        break; // Success, exit loop
+        response = await withTimeout(
+          genAI.models.generateContent({
+            model: MODEL_NAME,
+            contents: [
+              {
+                parts: [
+                  { text: PROMPT },
+                  { inlineData: { data: base64Image, mimeType } }
+                ]
+              }
+            ]
+          }),
+          GEMINI_TIMEOUT_MS
+        );
+        break; // Success
       } catch (apiErr) {
+        // Timeout: do not retry
+        if (apiErr.isTimeout) throw apiErr;
+
         const errorMsg = (apiErr.message || '').toLowerCase();
-        const isOverload = apiErr.status === 503 || apiErr.status === 429 || errorMsg.includes('unavailable') || errorMsg.includes('high demand') || errorMsg.includes('quota') || errorMsg.includes('exhausted');
+        const isOverload =
+          apiErr.status === 503 || apiErr.status === 429 ||
+          errorMsg.includes('unavailable') || errorMsg.includes('high demand') ||
+          errorMsg.includes('quota') || errorMsg.includes('exhausted');
 
         if (isOverload && retries < maxRetries) {
-          console.warn(`[OCR] Surcharge Gemini détectée (tentative ${retries + 1}/${maxRetries}). Nouvelle tentative dans ${delays[retries]}ms...`);
+          console.warn(`[OCR] Surcharge Gemini (tentative ${retries + 1}/${maxRetries}). Retry dans ${delays[retries]}ms...`);
           await new Promise(resolve => setTimeout(resolve, delays[retries]));
           retries++;
         } else {
-          throw apiErr; // Not an overload, or max retries reached: propagate to outer catch
+          throw apiErr; // Other error or max retries: propagate
         }
       }
     }
@@ -121,17 +184,22 @@ const analyzeDocument = async (req, res) => {
       fs.unlinkSync(req.file.path);
     }
 
-    return res.json({
-      success: true,
-      data: parsed
-    });
+    return res.json({ success: true, data: parsed });
 
   } catch (err) {
-    console.error('OCR error:', err);
+    console.error('OCR error:', err.message || err);
 
     // Clean up temp file if exists
     if (req.file && fs.existsSync(req.file.path)) {
       try { fs.unlinkSync(req.file.path); } catch (_) {}
+    }
+
+    // Timeout (25s exceeded)
+    if (err.isTimeout) {
+      return res.status(504).json({
+        success: false,
+        message: 'Le traitement de l\'image a pris trop de temps. Essayez avec une image plus légère ou réessayez dans quelques instants.'
+      });
     }
 
     const errorMsg = (err.message || '').toLowerCase();
@@ -143,10 +211,10 @@ const analyzeDocument = async (req, res) => {
       });
     }
 
-    if (err.status === 404 || errorMsg.includes('not found') || errorMsg.includes('not supported') || errorMsg.includes('invalid_argument')) {
+    if (err.status === 404 || errorMsg.includes('not found') || errorMsg.includes('not supported')) {
       return res.status(503).json({
         success: false,
-        message: `L'analyse a échoué car le modèle IA utilisé est introuvable ou incompatible. Veuillez contacter le support.`
+        message: 'Le modèle IA est introuvable ou incompatible. Veuillez contacter le support.'
       });
     }
 
