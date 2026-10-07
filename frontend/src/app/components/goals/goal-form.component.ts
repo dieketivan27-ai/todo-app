@@ -1,7 +1,7 @@
 import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { GoalCreate, CATEGORIES, GOAL_COLORS } from '../../models/task.model';
+import { GoalCreate, GoalType, CATEGORIES, GOAL_COLORS } from '../../models/task.model';
 
 @Component({
   selector: 'app-goal-form',
@@ -38,6 +38,21 @@ import { GoalCreate, CATEGORIES, GOAL_COLORS } from '../../models/task.model';
 
 
 
+      <!-- Type d'objectif -->
+      <div class="field-group" *ngIf="!isEdit">
+        <label class="field-label">Type d'objectif</label>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <button type="button" class="goal-type-card" [class.goal-type-selected]="goalType === 'actions'" (click)="goalType = 'actions'">
+            <span class="goal-type-title">Par actions</span>
+            <span class="goal-type-desc">Tâches liées (V1, V2…) récurrentes dans le planning jusqu'à complétion.</span>
+          </button>
+          <button type="button" class="goal-type-card" [class.goal-type-selected]="goalType === 'habit'" (click)="goalType = 'habit'">
+            <span class="goal-type-title">Annuel (habitudes)</span>
+            <span class="goal-type-desc">Compteur annuel + étapes hebdomadaires Lun–Ven générées automatiquement.</span>
+          </button>
+        </div>
+      </div>
+
       <!-- Année -->
       <div class="field-group">
         <label class="field-label">Année</label>
@@ -50,11 +65,17 @@ import { GoalCreate, CATEGORIES, GOAL_COLORS } from '../../models/task.model';
         <textarea [(ngModel)]="form.description" class="field-input" rows="2" placeholder="Décrivez cet objectif..."></textarea>
       </div>
 
-      <div class="field-group" *ngIf="!isEdit">
-        <label class="field-label">Variables d'action (optionnel)</label>
-        <textarea [(ngModel)]="actionVariablesText" class="field-input" rows="3"
+      <div class="field-group" *ngIf="!isEdit && goalType === 'actions'">
+        <label class="field-label">Actions / tâches liées *</label>
+        <textarea [(ngModel)]="actionVariablesText" class="field-input" rows="4"
           placeholder="Une action par ligne — ex:&#10;Préparer la revue mensuelle&#10;Mettre à jour le tableau KPI"></textarea>
-        <p class="text-[11px] text-gray-400 mt-1">Chaque ligne devient une tâche récurrente dans le planning jusqu'à complétion.</p>
+        <p class="text-[11px] text-gray-400 mt-1">Chaque ligne crée une tâche (variable d'action) liée à cet objectif.</p>
+      </div>
+
+      <div class="field-group" *ngIf="!isEdit && goalType === 'habit'">
+        <label class="field-label">Variables d'action (optionnel)</label>
+        <textarea [(ngModel)]="actionVariablesText" class="field-input" rows="2"
+          placeholder="En plus des étapes hebdo, ajouter des actions récurrentes…"></textarea>
       </div>
 
       <!-- Couleur -->
@@ -73,7 +94,7 @@ import { GoalCreate, CATEGORIES, GOAL_COLORS } from '../../models/task.model';
 
     <div class="modal-footer">
       <button class="btn-cancel" (click)="onCancel()">Annuler</button>
-      <button class="btn-save" [style.background]="form.color" (click)="onSave()" [disabled]="!form.title">
+      <button class="btn-save" [style.background]="form.color" (click)="onSave()" [disabled]="!canSave()">
         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
         </svg>
@@ -82,7 +103,24 @@ import { GoalCreate, CATEGORIES, GOAL_COLORS } from '../../models/task.model';
     </div>
   </div>
 </div>
-  `
+  `,
+  styles: [`
+    .goal-type-card {
+      text-align: left;
+      border: 2px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 12px;
+      background: #fff;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .goal-type-card:hover { border-color: #c7d2fe; }
+    .goal-type-selected {
+      border-color: #6366f1;
+      background: #eef2ff;
+    }
+    .goal-type-title { display: block; font-size: 13px; font-weight: 700; color: #111827; margin-bottom: 4px; }
+    .goal-type-desc { display: block; font-size: 11px; color: #6b7280; line-height: 1.35; }
+  `]
 })
 export class GoalFormComponent implements OnInit {
   @Input() initialData: Partial<GoalCreate> | null = null;
@@ -103,8 +141,7 @@ export class GoalFormComponent implements OnInit {
   };
 
   actionVariablesText = '';
-
-
+  goalType: GoalType = 'actions';
 
   ngOnInit() {
     if (this.initialData) {
@@ -112,14 +149,25 @@ export class GoalFormComponent implements OnInit {
     }
   }
 
+  canSave(): boolean {
+    if (!this.form.title) return false;
+    if (!this.isEdit && this.goalType === 'actions') {
+      return this.actionVariablesText.trim().length > 0;
+    }
+    return true;
+  }
+
   onSave() {
-    if (!this.form.title) return;
+    if (!this.canSave()) return;
     const payload: GoalCreate = { ...this.form };
-    if (!this.isEdit && this.actionVariablesText.trim()) {
-      payload.action_variables = this.actionVariablesText
-        .split('\n')
-        .map(l => l.trim())
-        .filter(Boolean);
+    if (!this.isEdit) {
+      payload.goal_type = this.goalType;
+      if (this.actionVariablesText.trim()) {
+        payload.action_variables = this.actionVariablesText
+          .split('\n')
+          .map(l => l.trim())
+          .filter(Boolean);
+      }
     }
     this.save.emit(payload);
   }

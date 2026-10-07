@@ -5,6 +5,21 @@ const GoalStep = require('../models/goal_step.model');
 const Task = require('../models/task.model');
 const { createActionVariableTask, createActionVariablesFromList } = require('../services/actionVariable.service');
 
+function actionTaskWhere(goalId, userId, extra = {}) {
+  return {
+    goal_id: goalId,
+    user_id: userId,
+    freq_type: 'weekly_until_done',
+    ...extra
+  };
+}
+
+async function syncActionsAnnualTarget(goal) {
+  if (goal.goal_type !== 'actions') return;
+  const total = await Task.count({ where: actionTaskWhere(goal.id, goal.user_id) });
+  await goal.update({ annual_target: Math.max(total, 1) });
+}
+
 // Utilitaire: numéro de semaine ISO
 function getISOWeek(date) {
   const d = new Date(date);
@@ -57,16 +72,42 @@ const getGoalById = async (req, res) => {
 const createGoal = async (req, res) => {
   const transaction = await sequelize.transaction();
   try {
-    const { title, category, annual_target, year, color, description, action_variables } = req.body;
+    const { title, category, annual_target, year, color, description, action_variables, goal_type } = req.body;
     if (!title) return res.status(400).json({ success: false, message: 'Le titre est obligatoire' });
-    const target = annual_target || 365;
-    const goal = await Goal.create({ title, category, annual_target: target, year, color, description, user_id: req.user.id }, { transaction });
 
-    if (Array.isArray(action_variables) && action_variables.length > 0) {
+    const hasActions = Array.isArray(action_variables) && action_variables.length > 0;
+    const resolvedType = goal_type === 'actions' ? 'actions' : 'habit';
+
+    if (resolvedType === 'actions' && !hasActions) {
+      await transaction.rollback();
+      return res.status(400).json({
+        success: false,
+        message: 'Un objectif par actions requiert au moins une variable d\'action (une ligne par tâche).'
+      });
+    }
+
+    let target = annual_target || 365;
+    if (resolvedType === 'actions') {
+      target = action_variables.length;
+    }
+
+    const goal = await Goal.create({
+      title,
+      category,
+      annual_target: target,
+      year,
+      color,
+      description,
+      goal_type: resolvedType,
+      user_id: req.user.id
+    }, { transaction });
+
+    if (hasActions) {
       const titles = action_variables.map(v => (typeof v === 'string' ? v : v.title)).filter(Boolean);
       await createActionVariablesFromList(goal, titles, req.user.id, transaction);
     }
 
+    if (resolvedType !== 'actions') {
     // Generate steps and tasks for the next 4 weeks
     const now = new Date();
     const currentWeekNum = getISOWeek(now);
@@ -112,9 +153,13 @@ const createGoal = async (req, res) => {
         }, { transaction });
       }
     }
+    }
 
     await transaction.commit();
-    res.status(201).json({ success: true, data: goal, message: 'Objectif et ses 4 premières étapes hebdomadaires créés avec succès' });
+    const message = resolvedType === 'actions'
+      ? 'Objectif par actions créé — les tâches apparaissent dans le planning chaque semaine'
+      : 'Objectif et ses 4 premières étapes hebdomadaires créés avec succès';
+    res.status(201).json({ success: true, data: goal, message });
   } catch (err) {
     await transaction.rollback();
     res.status(400).json({ success: false, message: err.message });
@@ -180,19 +225,6 @@ const getDashboard = async (req, res) => {
 
     // Pour chaque objectif, calculer les KPIs
     const goalsWithStats = await Promise.all(goals.map(async (goal) => {
-      const whereBase = {
-        user_id: req.user.id,
-        goal_id: goal.id,
-        status: 'DONE',
-        completed_at: { [Op.between]: [yearStart, yearEnd] }
-      };
-
-      const [annualDone, monthDone, weekDone] = await Promise.all([
-        Task.count({ where: whereBase }),
-        currentMonth > 0 ? Task.count({ where: { ...whereBase, completed_at: { [Op.between]: [monthStart, monthEnd] } } }) : 0,
-        currentWeek > 0 ? Task.count({ where: { ...whereBase, completed_at: { [Op.between]: [weekStart, weekEnd] } } }) : 0
-      ]);
-
       const createdAt = new Date(goal.created_at || now);
       let startWeek = 1;
       let startMonth = 1;
@@ -205,44 +237,112 @@ const getDashboard = async (req, res) => {
       const elapsedWeeks = Math.max(currentWeek - startWeek + 1, 0);
       const totalMonths = Math.max(12 - startMonth + 1, 1);
       const elapsedMonths = Math.max(currentMonth - startMonth + 1, 0);
-
-      const weeklyTarget = goal.annual_target / totalWeeks;
-      const monthlyTarget = goal.annual_target / totalMonths;
-
-      // Pace idéal: combien de semaines écoulées / total semaines
       const idealPacePct = Math.min((elapsedWeeks / totalWeeks) * 100, 100);
-      const annualPct = Math.min((annualDone / goal.annual_target) * 100, 100);
-      const monthlyPct = Math.min((monthDone / Math.ceil(monthlyTarget)) * 100, 100);
-      const weeklyPct = Math.min((weekDone / Math.ceil(weeklyTarget)) * 100, 100);
+
+      let annualDone;
+      let monthDone;
+      let weekDone;
+      let annualPct;
+      let monthlyPct;
+      let weeklyPct;
+      let weeklyTarget;
+      let monthlyTarget;
+      let weeklyData;
+
+      if (goal.goal_type === 'actions') {
+        const actionTotal = await Task.count({ where: actionTaskWhere(goal.id, req.user.id) });
+        const target = Math.max(actionTotal, goal.annual_target, 1);
+        if (actionTotal !== goal.annual_target) {
+          await goal.update({ annual_target: Math.max(actionTotal, 1) });
+        }
+
+        const doneBase = actionTaskWhere(goal.id, req.user.id, { status: 'DONE' });
+        annualDone = await Task.count({ where: doneBase });
+        monthDone = currentMonth > 0
+          ? await Task.count({
+            where: {
+              ...doneBase,
+              completed_at: { [Op.between]: [monthStart, monthEnd] }
+            }
+          })
+          : 0;
+        weekDone = currentWeek > 0
+          ? await Task.count({
+            where: {
+              ...doneBase,
+              completed_at: { [Op.between]: [weekStart, weekEnd] }
+            }
+          })
+          : 0;
+
+        annualPct = Math.min((annualDone / target) * 100, 100);
+        monthlyPct = target > 0 ? Math.min((monthDone / Math.max(Math.ceil(target / totalMonths), 1)) * 100, 100) : 0;
+        weeklyPct = target > 0 ? Math.min((weekDone / Math.max(Math.ceil(target / totalWeeks), 1)) * 100, 100) : 0;
+        weeklyTarget = Math.max(Math.ceil(target / totalWeeks), 1);
+        monthlyTarget = Math.max(Math.ceil(target / totalMonths), 1);
+
+        weeklyData = [];
+        const loopWeeks = Math.min(currentWeek, 52);
+        for (let w = 1; w <= loopWeeks; w++) {
+          const { end: we } = getWeekBounds(year, w);
+          const wDone = await Task.count({
+            where: {
+              ...actionTaskWhere(goal.id, req.user.id, { status: 'DONE' }),
+              completed_at: { [Op.between]: [yearStart, we] }
+            }
+          });
+          let ideal = 0;
+          if (w >= startWeek) {
+            ideal = Math.round(((w - startWeek + 1) / totalWeeks) * target);
+          }
+          weeklyData.push({ week: w, actual: wDone, ideal: Math.min(ideal, target) });
+        }
+      } else {
+        const whereBase = {
+          user_id: req.user.id,
+          goal_id: goal.id,
+          status: 'DONE',
+          completed_at: { [Op.between]: [yearStart, yearEnd] }
+        };
+
+        [annualDone, monthDone, weekDone] = await Promise.all([
+          Task.count({ where: whereBase }),
+          currentMonth > 0 ? Task.count({ where: { ...whereBase, completed_at: { [Op.between]: [monthStart, monthEnd] } } }) : 0,
+          currentWeek > 0 ? Task.count({ where: { ...whereBase, completed_at: { [Op.between]: [weekStart, weekEnd] } } }) : 0
+        ]);
+
+        weeklyTarget = goal.annual_target / totalWeeks;
+        monthlyTarget = goal.annual_target / totalMonths;
+        annualPct = Math.min((annualDone / goal.annual_target) * 100, 100);
+        monthlyPct = Math.min((monthDone / Math.ceil(monthlyTarget)) * 100, 100);
+        weeklyPct = Math.min((weekDone / Math.ceil(weeklyTarget)) * 100, 100);
+
+        weeklyData = [];
+        const loopWeeks = Math.min(currentWeek, 52);
+        for (let w = 1; w <= loopWeeks; w++) {
+          const { end: we } = getWeekBounds(year, w);
+          const wDone = await Task.count({
+            where: {
+              user_id: req.user.id,
+              goal_id: goal.id,
+              status: 'DONE',
+              completed_at: { [Op.between]: [yearStart, we] }
+            }
+          });
+          let ideal = 0;
+          if (w >= startWeek) {
+            ideal = Math.round(((w - startWeek + 1) / totalWeeks) * goal.annual_target);
+          }
+          weeklyData.push({
+            week: w,
+            actual: wDone,
+            ideal: Math.min(ideal, goal.annual_target)
+          });
+        }
+      }
 
       const isLate = annualPct < idealPacePct * 0.85;
       const evolutionRate = idealPacePct > 0 ? ((annualPct / idealPacePct) * 100).toFixed(1) : 100;
-
-      // Données semaine par semaine pour la courbe (depuis semaine 1 jusqu'à currentWeek)
-      const weeklyData = [];
-      const loopWeeks = Math.min(currentWeek, 52);
-      for (let w = 1; w <= loopWeeks; w++) {
-        const { start: ws, end: we } = getWeekBounds(year, w);
-        const wDone = await Task.count({
-          where: {
-            user_id: req.user.id,
-            goal_id: goal.id,
-            status: 'DONE',
-            completed_at: { [Op.between]: [yearStart, we] }
-          }
-        });
-        
-        let ideal = 0;
-        if (w >= startWeek) {
-          ideal = Math.round(((w - startWeek + 1) / totalWeeks) * goal.annual_target);
-        }
-        
-        weeklyData.push({
-          week: w,
-          actual: wDone,
-          ideal: Math.min(ideal, goal.annual_target)
-        });
-      }
 
       return {
         ...goal.toJSON(),
@@ -253,8 +353,8 @@ const getDashboard = async (req, res) => {
           monthlyPct: Math.round(monthlyPct),
           weekDone,
           weeklyPct: Math.round(weeklyPct),
-          weeklyTarget: Math.ceil(weeklyTarget),
-          monthlyTarget: Math.ceil(monthlyTarget),
+          weeklyTarget: Math.ceil(weeklyTarget || 1),
+          monthlyTarget: Math.ceil(monthlyTarget || 1),
           idealPacePct: Math.round(idealPacePct),
           evolutionRate: parseFloat(evolutionRate),
           isLate,
@@ -426,6 +526,10 @@ const createActionVariable = async (req, res) => {
       jours_assignes: jours_assignes || null
     });
 
+    if (goal.goal_type === 'actions') {
+      await syncActionsAnnualTarget(goal);
+    }
+
     res.status(201).json({ success: true, data: task, message: 'Variable d\'action créée' });
   } catch (err) {
     res.status(400).json({ success: false, message: err.message });
@@ -449,6 +553,9 @@ const deleteActionVariable = async (req, res) => {
     if (!task) return res.status(404).json({ success: false, message: 'Variable d\'action introuvable' });
 
     await task.destroy();
+    if (goal.goal_type === 'actions') {
+      await syncActionsAnnualTarget(goal);
+    }
     res.json({ success: true, message: 'Variable d\'action supprimée' });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

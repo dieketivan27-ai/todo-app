@@ -692,14 +692,16 @@ export class ScanDocumentComponent implements OnDestroy {
   }
 
   private toGoalCreate(goal: OcrGoalData, year: number): GoalCreate {
+    const hasActions = !!(goal.actions?.length);
     return {
       title: goal.title,
       category: goal.category || 'Général',
-      annual_target: goal.annual_target || 52,
+      annual_target: hasActions ? goal.actions!.length : (goal.annual_target || 52),
       year: year || new Date().getFullYear(),
       color: goal.color || '#6366f1',
       description: goal.description || '',
-      action_variables: goal.actions?.length ? goal.actions : undefined
+      goal_type: hasActions ? 'actions' : 'habit',
+      action_variables: hasActions ? goal.actions : undefined
     };
   }
 

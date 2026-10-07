@@ -116,6 +116,8 @@ export interface WeeklyPoint {
   ideal: number;
 }
 
+export type GoalType = 'habit' | 'actions';
+
 export interface Goal {
   id: number;
   title: string;
@@ -124,6 +126,7 @@ export interface Goal {
   year: number;
   color: string;
   description?: string;
+  goal_type?: GoalType;
   created_at: string;
   updated_at: string;
   stats: GoalStats;
@@ -142,6 +145,7 @@ export interface GoalCreate {
   year: number;
   color: string;
   description?: string;
+  goal_type?: GoalType;
   action_variables?: (string | ActionVariableCreate)[];
 }
 

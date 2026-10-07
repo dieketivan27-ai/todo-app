@@ -26,6 +26,9 @@ Chart.register(LineElement, PointElement, LinearScale, CategoryScale, Filler, To
     <div class="goal-card-title">
       <h3>{{ goal.title }}</h3>
       <span class="goal-category">{{ goal.category }}</span>
+      <span *ngIf="goal.goal_type === 'actions'" class="inline-block mt-1 text-[10px] font-bold text-violet-700 bg-violet-100 px-2 py-0.5 rounded-full">
+        Objectif par actions
+      </span>
     </div>
     <div class="goal-actions">
       <button (click)="onEdit()" class="goal-action-btn" title="Modifier">
@@ -54,7 +57,7 @@ Chart.register(LineElement, PointElement, LinearScale, CategoryScale, Filler, To
     <div class="kpi-box">
       <span class="kpi-label">Annuel</span>
       <span class="kpi-value" [style.color]="goal.color">{{ goal.stats.annualPct }}%</span>
-      <span class="kpi-sub">{{ goal.stats.annualDone }} / {{ goal.annual_target }}</span>
+      <span class="kpi-sub">{{ goal.stats.annualDone }} / {{ goal.annual_target }}{{ goal.goal_type === 'actions' ? ' actions' : '' }}</span>
     </div>
     <div class="kpi-box">
       <span class="kpi-label">Ce mois</span>
@@ -98,8 +101,8 @@ Chart.register(LineElement, PointElement, LinearScale, CategoryScale, Filler, To
 
   <app-goal-action-variables [goalId]="goal.id"></app-goal-action-variables>
 
-  <!-- Étapes hebdomadaires -->
-  <div class="flex justify-center pt-2">
+  <!-- Étapes hebdomadaires (objectifs habitudes uniquement) -->
+  <div class="flex justify-center pt-2" *ngIf="goal.goal_type !== 'actions'">
     <button (click)="toggleSteps()" class="text-xs font-semibold text-primary-600 dark:text-primary-400 hover:underline flex items-center gap-1">
       <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" *ngIf="!showSteps()">
         <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
