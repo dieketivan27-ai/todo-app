@@ -129,10 +129,22 @@ type ScanState = 'idle' | 'analyzing' | 'results' | 'error';
         </div>
         <h3 class="analyzing-title">Analyse en cours…</h3>
         <p class="analyzing-sub">Gemini Vision lit votre document et extrait les objectifs</p>
+
+        <!-- Elapsed timer -->
+        <div class="analyzing-timer">
+          <span class="timer-value">{{ elapsedSeconds() }}s</span>
+          <span class="timer-label"> écoulée{{ elapsedSeconds() > 1 ? 's' : '' }}</span>
+        </div>
+
+        <!-- Patience hint for dense docs -->
+        <p class="analyzing-hint" *ngIf="elapsedSeconds() >= 8">
+          📄 Document dense détecté — le traitement peut prendre jusqu'à 45 secondes.
+        </p>
+
         <div class="analyzing-steps">
           <div class="step-dot active"></div>
-          <div class="step-dot active"></div>
-          <div class="step-dot"></div>
+          <div class="step-dot" [class.active]="elapsedSeconds() >= 5"></div>
+          <div class="step-dot" [class.active]="elapsedSeconds() >= 15"></div>
         </div>
       </div>
     </div>
@@ -412,7 +424,26 @@ type ScanState = 'idle' | 'analyzing' | 'results' | 'error';
 }
 .analyzing-title { font-size: 1.1rem; font-weight: 600; color: #f1f5f9; margin: 0 0 0.4rem; }
 .analyzing-sub { font-size: 0.8rem; color: #64748b; margin: 0 0 1.5rem; }
-.analyzing-steps { display: flex; gap: 0.5rem; justify-content: center; }
+/* Timer */
+.analyzing-timer {
+  margin: 0.6rem 0 0.4rem;
+  font-size: 0.8rem;
+  color: #818cf8;
+}
+.timer-value { font-weight: 700; font-size: 1rem; }
+.timer-label { color: #64748b; }
+
+/* Dense doc hint */
+.analyzing-hint {
+  font-size: 0.75rem;
+  color: #64748b;
+  max-width: 300px;
+  margin: 0 auto 0.75rem;
+  line-height: 1.5;
+  animation: fadeIn 0.4s ease;
+}
+
+/* Steps */
 .step-dot {
   width: 8px; height: 8px;
   border-radius: 50%;
@@ -561,6 +592,8 @@ export class ScanDocumentComponent {
   ocrResult = signal<OcrResult | null>(null);
   errorMessage = signal('');
   selectedGoalIndex = signal<number | null>(null);
+  elapsedSeconds = signal(0);
+  private timerRef: ReturnType<typeof setInterval> | null = null;
 
   onBackdropClick(event: MouseEvent) {
     if ((event.target as HTMLElement).classList.contains('scan-backdrop')) {
@@ -601,19 +634,30 @@ export class ScanDocumentComponent {
     if (!file) return;
 
     this.state.set('analyzing');
+    this.elapsedSeconds.set(0);
+    this.timerRef = setInterval(() => this.elapsedSeconds.update(s => s + 1), 1000);
+
     this.ocrService.analyzeDocument(file).subscribe({
       next: (result) => {
+        this.stopTimer();
         this.ocrResult.set(result);
-        // Auto-select if only one goal
         if (result.goals.length === 1) this.selectedGoalIndex.set(0);
         this.state.set('results');
       },
       error: (err) => {
+        this.stopTimer();
         const msg = err.error?.message || err.message || 'Erreur inconnue';
         this.errorMessage.set(msg);
         this.state.set('error');
       }
     });
+  }
+
+  private stopTimer() {
+    if (this.timerRef) {
+      clearInterval(this.timerRef);
+      this.timerRef = null;
+    }
   }
 
   selectGoal(index: number) {
@@ -647,11 +691,13 @@ export class ScanDocumentComponent {
   }
 
   reset() {
+    this.stopTimer();
     this.state.set('idle');
     this.previewUrl.set(null);
     this.selectedFile.set(null);
     this.ocrResult.set(null);
     this.selectedGoalIndex.set(null);
     this.errorMessage.set('');
+    this.elapsedSeconds.set(0);
   }
 }

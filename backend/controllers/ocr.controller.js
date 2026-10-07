@@ -5,9 +5,12 @@ const sharp = require('sharp');
 const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 // Image limits before sending to Gemini
-const MAX_IMAGE_PX  = 1600;  // max width or height in pixels
-const MAX_IMAGE_KB  = 1500;  // max size in KB (~1.5 MB)
-const GEMINI_TIMEOUT_MS = 25000; // 25s — below Render's 30s timeout
+// 2000px preserves text readability for dense documents; quality 90% avoids OCR loss
+const MAX_IMAGE_PX      = 2000;   // max width or height in pixels
+const MAX_IMAGE_KB      = 3000;   // soft cap ~3 MB — only compress further if exceeded
+const JPEG_QUALITY_HIGH = 90;     // default quality (high — text must remain legible)
+const JPEG_QUALITY_MIN  = 65;     // floor quality (never go below this for OCR)
+const GEMINI_TIMEOUT_MS = 55000;  // 55s — generous for dense docs, below Render's 60s limit
 
 const PROMPT = `Tu es un assistant expert en extraction de données structurées depuis des documents RH et de planification.
 
@@ -46,33 +49,36 @@ const MODEL_NAME = 'gemini-3.8-flash';
  * Returns { buffer, mimeType } with the optimized image.
  */
 async function compressImage(inputBuffer) {
-  let img = sharp(inputBuffer).rotate(); // auto-orient from EXIF
-
-  const meta = await img.metadata();
+  const meta = await sharp(inputBuffer).metadata();
   const originalKB = Math.round(inputBuffer.length / 1024);
-  console.log(`[OCR] Image reçue : ${originalKB} Ko, ${meta.width}x${meta.height}px`);
+  console.log(`[OCR] Image reçue : ${originalKB} Ko, ${meta.width}x${meta.height}px (format: ${meta.format})`);
 
-  // Resize only if necessary
-  if (meta.width > MAX_IMAGE_PX || meta.height > MAX_IMAGE_PX) {
-    img = img.resize(MAX_IMAGE_PX, MAX_IMAGE_PX, { fit: 'inside', withoutEnlargement: true });
+  // Step 1: resize only if the image exceeds MAX_IMAGE_PX on any side
+  const needsResize = (meta.width || 0) > MAX_IMAGE_PX || (meta.height || 0) > MAX_IMAGE_PX;
+  let pipeline = sharp(inputBuffer).rotate(); // auto-orient from EXIF
+
+  if (needsResize) {
+    pipeline = pipeline.resize(MAX_IMAGE_PX, MAX_IMAGE_PX, { fit: 'inside', withoutEnlargement: true });
+    console.log(`[OCR] Redimensionnement : → ${MAX_IMAGE_PX}px max (côté le plus long)`);
   }
 
-  // Convert to JPEG and compress
-  let quality = 85;
-  let outputBuffer = await img.jpeg({ quality }).toBuffer();
+  // Step 2: encode as JPEG at high quality — prioritise readability for OCR
+  let quality = JPEG_QUALITY_HIGH;
+  let outputBuffer = await pipeline.jpeg({ quality, mozjpeg: true }).toBuffer();
 
-  // Reduce quality further if still too large
-  while (outputBuffer.length > MAX_IMAGE_KB * 1024 && quality > 40) {
-    quality -= 15;
+  // Step 3: only reduce quality further if image is unexpectedly large (> soft cap)
+  while (outputBuffer.length > MAX_IMAGE_KB * 1024 && quality > JPEG_QUALITY_MIN) {
+    quality -= 10;
     outputBuffer = await sharp(inputBuffer)
       .rotate()
       .resize(MAX_IMAGE_PX, MAX_IMAGE_PX, { fit: 'inside', withoutEnlargement: true })
-      .jpeg({ quality })
+      .jpeg({ quality, mozjpeg: true })
       .toBuffer();
   }
 
   const finalKB = Math.round(outputBuffer.length / 1024);
-  console.log(`[OCR] Image compressée : ${finalKB} Ko (qualité JPEG: ${quality}%)`);
+  const saving  = Math.round((1 - finalKB / originalKB) * 100);
+  console.log(`[OCR] Image compressée : ${finalKB} Ko (qualité JPEG: ${quality}%) — gain: ${saving}%`);
 
   return { buffer: outputBuffer, mimeType: 'image/jpeg' };
 }
@@ -194,11 +200,11 @@ const analyzeDocument = async (req, res) => {
       try { fs.unlinkSync(req.file.path); } catch (_) {}
     }
 
-    // Timeout (25s exceeded)
+    // Timeout (55s exceeded)
     if (err.isTimeout) {
       return res.status(504).json({
         success: false,
-        message: 'Le traitement de l\'image a pris trop de temps. Essayez avec une image plus légère ou réessayez dans quelques instants.'
+        message: 'Le traitement du document a pris trop de temps (limite de 55 secondes atteinte). Essayez avec une image plus légère, ou réessayez — les documents denses peuvent parfois nécessiter plusieurs tentatives.'
       });
     }
 
