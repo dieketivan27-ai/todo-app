@@ -52,23 +52,44 @@ const analyzeDocument = async (req, res) => {
     const base64Image = imageData.toString('base64');
     const mimeType = req.file.mimetype;
 
-    // Call Gemini Vision with new @google/genai SDK
-    const response = await genAI.models.generateContent({
-      model: MODEL_NAME,
-      contents: [
-        {
-          parts: [
-            { text: PROMPT },
+    // Call Gemini Vision with new @google/genai SDK (with exponential backoff retry)
+    let response;
+    let retries = 0;
+    const maxRetries = 3;
+    const delays = [2000, 4000, 8000];
+
+    while (true) {
+      try {
+        response = await genAI.models.generateContent({
+          model: MODEL_NAME,
+          contents: [
             {
-              inlineData: {
-                data: base64Image,
-                mimeType: mimeType
-              }
+              parts: [
+                { text: PROMPT },
+                {
+                  inlineData: {
+                    data: base64Image,
+                    mimeType: mimeType
+                  }
+                }
+              ]
             }
           ]
+        });
+        break; // Success, exit loop
+      } catch (apiErr) {
+        const errorMsg = (apiErr.message || '').toLowerCase();
+        const isOverload = apiErr.status === 503 || apiErr.status === 429 || errorMsg.includes('unavailable') || errorMsg.includes('high demand') || errorMsg.includes('quota') || errorMsg.includes('exhausted');
+
+        if (isOverload && retries < maxRetries) {
+          console.warn(`[OCR] Surcharge Gemini détectée (tentative ${retries + 1}/${maxRetries}). Nouvelle tentative dans ${delays[retries]}ms...`);
+          await new Promise(resolve => setTimeout(resolve, delays[retries]));
+          retries++;
+        } else {
+          throw apiErr; // Not an overload, or max retries reached: propagate to outer catch
         }
-      ]
-    });
+      }
+    }
 
     const text = response.text.trim();
 
