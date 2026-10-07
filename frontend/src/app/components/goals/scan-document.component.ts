@@ -445,6 +445,7 @@ type ScanState = 'idle' | 'analyzing' | 'results' | 'error';
 }
 
 /* Steps */
+.analyzing-steps { display: flex; gap: 0.5rem; justify-content: center; margin-top: 0.5rem; }
 .step-dot {
   width: 8px; height: 8px;
   border-radius: 50%;

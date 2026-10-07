@@ -106,39 +106,54 @@ function withTimeout(promise, ms) {
 // ─── Background Gemini processing ─────────────────────────────────────────────
 async function runGeminiInBackground(taskId, imageBuffer, mimeType, tempFilePath) {
   const base64Image = imageBuffer.toString('base64');
-  let retries = 0;
-  const maxRetries = 3;
-  const delays = [3000, 6000, 12000];
+  const modelsToTry = [MODEL_NAME, 'gemini-2.5-flash'];
+  let response;
+  let finalModel = null;
 
   try {
-    let response;
-    while (true) {
-      try {
-        response = await withTimeout(
-          genAI.models.generateContent({
-            model: MODEL_NAME,
-            contents: [{ parts: [{ text: PROMPT }, { inlineData: { data: base64Image, mimeType } }] }]
-          }),
-          GEMINI_TIMEOUT_MS
-        );
-        break;
-      } catch (apiErr) {
-        if (apiErr.isTimeout) throw apiErr;
+    for (const [modelIndex, modelName] of modelsToTry.entries()) {
+      let retries = 0;
+      const maxRetries = modelIndex === 0 ? 3 : 2; // 3 retries for primary, 2 for fallback
+      const delays = [3000, 6000, 12000];
+      let success = false;
 
-        const errorMsg = (apiErr.message || '').toLowerCase();
-        const isOverload =
-          apiErr.status === 503 || apiErr.status === 429 ||
-          errorMsg.includes('unavailable') || errorMsg.includes('high demand') ||
-          errorMsg.includes('quota') || errorMsg.includes('exhausted');
+      while (true) {
+        try {
+          response = await withTimeout(
+            genAI.models.generateContent({
+              model: modelName,
+              contents: [{ parts: [{ text: PROMPT }, { inlineData: { data: base64Image, mimeType } }] }]
+            }),
+            GEMINI_TIMEOUT_MS
+          );
+          success = true;
+          finalModel = modelName;
+          break; // success
+        } catch (apiErr) {
+          const errorMsg = (apiErr.message || '').toLowerCase();
+          const isOverload =
+            apiErr.isTimeout || apiErr.status === 503 || apiErr.status === 429 ||
+            errorMsg.includes('unavailable') || errorMsg.includes('high demand') ||
+            errorMsg.includes('quota') || errorMsg.includes('exhausted');
 
-        if (isOverload && retries < maxRetries) {
-          console.warn(`[OCR:${taskId}] Surcharge Gemini (tentative ${retries + 1}/${maxRetries}). Retry dans ${delays[retries]}ms...`);
-          await new Promise(r => setTimeout(r, delays[retries]));
-          retries++;
-        } else {
-          throw apiErr;
+          if (isOverload && retries < maxRetries) {
+            console.warn(`[OCR:${taskId}] Surcharge ${modelName} (tentative ${retries + 1}/${maxRetries}). Retry dans ${delays[retries]}ms...`);
+            await new Promise(r => setTimeout(r, delays[retries]));
+            retries++;
+          } else if (isOverload && modelIndex < modelsToTry.length - 1) {
+            console.warn(`[OCR:${taskId}] Echec des tentatives sur ${modelName}. Basculement sur modèle de secours...`);
+            break; // break inner loop to try next model
+          } else {
+            throw apiErr; // Not an overload, or out of models/retries
+          }
         }
       }
+
+      if (success) break;
+    }
+
+    if (!response) {
+      throw new Error("OVERLOAD_FATAL");
     }
 
     const text = response.text.trim();
@@ -162,21 +177,19 @@ async function runGeminiInBackground(taskId, imageBuffer, mimeType, tempFilePath
     }
 
     tasks.set(taskId, { ...tasks.get(taskId), status: 'completed', result: parsed });
-    console.log(`[OCR:${taskId}] ✓ Terminé avec ${parsed.goals?.length || 0} objectif(s).`);
+    console.log(`[OCR:${taskId}] ✓ Terminé avec ${parsed.goals?.length || 0} objectif(s) via ${finalModel}.`);
 
   } catch (err) {
     console.error(`[OCR:${taskId}] Erreur:`, err.message);
     const errorMsg = (err.message || '').toLowerCase();
 
     let userMessage;
-    if (err.isTimeout) {
-      userMessage = 'Le traitement a dépassé 95 secondes. Essayez avec une image plus légère ou réessayez.';
+    if (err.message === 'OVERLOAD_FATAL' || err.isTimeout || err.status === 503 || err.status === 429 || errorMsg.includes('unavailable') || errorMsg.includes('high demand') || errorMsg.includes('quota') || errorMsg.includes('exhausted')) {
+      userMessage = "Le service d'analyse est temporairement surchargé, veuillez réessayer dans quelques minutes.";
     } else if (errorMsg.includes('api_key') || err.status === 401 || err.status === 403) {
       userMessage = 'Clé API Gemini invalide ou expirée.';
     } else if (err.status === 404 || errorMsg.includes('not found') || errorMsg.includes('not supported')) {
       userMessage = 'Le modèle IA est introuvable. Veuillez contacter le support.';
-    } else if (err.status === 429 || errorMsg.includes('quota') || errorMsg.includes('exhausted')) {
-      userMessage = 'Le service IA est surchargé. Réessayez dans quelques instants.';
     } else {
       userMessage = 'Une erreur de communication avec l\'IA est survenue. Réessayez.';
     }
