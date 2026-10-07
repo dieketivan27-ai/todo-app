@@ -32,7 +32,7 @@ Règles importantes:
 - Extrait TOUT le texte visible même si partiellement illisible
 - Si tu ne peux pas lire l'image ou qu'elle ne contient pas d'objectifs, retourne: {"error": "Aucun objectif trouvé dans ce document"}`;
 
-const MODEL_NAME = 'gemini-2.5-flash';
+const MODEL_NAME = 'gemini-3.8-flash';
 
 const analyzeDocument = async (req, res) => {
   try {
