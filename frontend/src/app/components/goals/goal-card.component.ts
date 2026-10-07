@@ -1,9 +1,8 @@
 import {
-  Component, Input, Output, EventEmitter, OnInit, OnDestroy, ElementRef, ViewChild, AfterViewInit, OnChanges, signal
+  Component, Input, Output, EventEmitter, OnDestroy, ElementRef, ViewChild, AfterViewInit, OnChanges
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Goal } from '../../models/task.model';
-import { GoalStepsComponent } from './goal-steps.component';
 import { GoalActionVariablesComponent } from './goal-action-variables.component';
 import { Chart, LineElement, PointElement, LinearScale, CategoryScale, Filler, Tooltip, Legend, LineController } from 'chart.js';
 
@@ -12,7 +11,7 @@ Chart.register(LineElement, PointElement, LinearScale, CategoryScale, Filler, To
 @Component({
   selector: 'app-goal-card',
   standalone: true,
-  imports: [CommonModule, GoalStepsComponent, GoalActionVariablesComponent],
+  imports: [CommonModule, GoalActionVariablesComponent],
   template: `
 <div class="goal-card" [class.goal-late]="goal.stats.isLate">
 
@@ -26,8 +25,8 @@ Chart.register(LineElement, PointElement, LinearScale, CategoryScale, Filler, To
     <div class="goal-card-title">
       <h3>{{ goal.title }}</h3>
       <span class="goal-category">{{ goal.category }}</span>
-      <span *ngIf="goal.goal_type === 'actions'" class="inline-block mt-1 text-[10px] font-bold text-violet-700 bg-violet-100 px-2 py-0.5 rounded-full">
-        Objectif par actions
+      <span class="inline-block mt-1 text-[10px] font-bold text-violet-700 bg-violet-100 px-2 py-0.5 rounded-full">
+        Actions liées
       </span>
     </div>
     <div class="goal-actions">
@@ -57,7 +56,7 @@ Chart.register(LineElement, PointElement, LinearScale, CategoryScale, Filler, To
     <div class="kpi-box">
       <span class="kpi-label">Annuel</span>
       <span class="kpi-value" [style.color]="goal.color">{{ goal.stats.annualPct }}%</span>
-      <span class="kpi-sub">{{ goal.stats.annualDone }} / {{ goal.annual_target }}{{ goal.goal_type === 'actions' ? ' actions' : '' }}</span>
+      <span class="kpi-sub">{{ goal.stats.annualDone }} / {{ goal.annual_target }} actions</span>
     </div>
     <div class="kpi-box">
       <span class="kpi-label">Ce mois</span>
@@ -101,21 +100,6 @@ Chart.register(LineElement, PointElement, LinearScale, CategoryScale, Filler, To
 
   <app-goal-action-variables [goalId]="goal.id"></app-goal-action-variables>
 
-  <!-- Étapes hebdomadaires (objectifs habitudes uniquement) -->
-  <div class="flex justify-center pt-2" *ngIf="goal.goal_type !== 'actions'">
-    <button (click)="toggleSteps()" class="text-xs font-semibold text-primary-600 dark:text-primary-400 hover:underline flex items-center gap-1">
-      <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" *ngIf="!showSteps()">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
-      </svg>
-      <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" *ngIf="showSteps()">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"/>
-      </svg>
-      {{ showSteps() ? 'Masquer les étapes' : 'Voir les étapes hebdomadaires' }}
-    </button>
-  </div>
-
-  <app-goal-steps [goalId]="goal.id" *ngIf="showSteps()"></app-goal-steps>
-
 </div>
   `
 })
@@ -125,12 +109,7 @@ export class GoalCardComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Output() delete = new EventEmitter<number>();
   @ViewChild('chartCanvas') chartCanvas!: ElementRef<HTMLCanvasElement>;
 
-  showSteps = signal(false);
   private chart: Chart | null = null;
-
-  toggleSteps() {
-    this.showSteps.set(!this.showSteps());
-  }
 
   ngAfterViewInit() {
     this.renderChart();

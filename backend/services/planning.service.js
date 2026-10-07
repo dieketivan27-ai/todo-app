@@ -117,7 +117,6 @@ function taskToSlot(task, goalMap, occurrenceDate, generated) {
     start_time: task.start_time,
     end_time: task.end_time,
     goal_id: task.goal_id,
-    goal_step_id: task.goal_step_id,
     freq_type: task.freq_type,
     action_index: task.action_index,
     is_action_variable: task.freq_type === 'weekly_until_done' && !!task.goal_id,

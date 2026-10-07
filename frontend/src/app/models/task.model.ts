@@ -14,7 +14,6 @@ export interface Task {
   start_time?: string;
   end_time?: string;
   goal_id?: number;
-  goal_step_id?: number;
   freq_type?: FreqType;
   recurrence_hebdomadaire?: boolean;
   jours_assignes?: string[] | null;
@@ -171,21 +170,3 @@ export const GOAL_COLORS = [
   '#6366f1', '#8b5cf6', '#ec4899', '#f59e0b',
   '#10b981', '#3b82f6', '#f43f5e', '#14b8a6'
 ];
-
-export interface GoalStep {
-  id: number;
-  goal_id: number;
-  week_number: number;
-  year: number;
-  week_start: string;
-  week_end: string;
-  weekly_target: number;
-  description?: string;
-  status: 'PENDING' | 'IN_PROGRESS' | 'DONE';
-  tasksCompleted: number;
-  weeklyPct: number;
-  monthlyPct: number;
-  evolutionRate: number;
-  dailyTasks: Task[];
-}
-

@@ -42,7 +42,7 @@ const Goal = sequelize.define('Goal', {
   },
   goal_type: {
     type: DataTypes.ENUM('habit', 'actions'),
-    defaultValue: 'habit',
+    defaultValue: 'actions',
     allowNull: false
   },
   user_id: {

@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { Goal, GoalCreate, GoalDashboard, GoalStep, Task, ActionVariableCreate } from '../models/task.model';
+import { Goal, GoalCreate, GoalDashboard, Task, ActionVariableCreate } from '../models/task.model';
 
 interface ApiResponse<T> {
   success: boolean;
@@ -44,11 +44,6 @@ export class GoalService {
   getDashboard(year?: number): Observable<GoalDashboard> {
     const params = year ? `?year=${year}` : '';
     return this.http.get<ApiResponse<GoalDashboard>>(`${this.baseUrl}/dashboard${params}`)
-      .pipe(map(r => r.data));
-  }
-
-  getSteps(id: number): Observable<GoalStep[]> {
-    return this.http.get<ApiResponse<GoalStep[]>>(`${this.baseUrl}/${id}/steps`)
       .pipe(map(r => r.data));
   }
 

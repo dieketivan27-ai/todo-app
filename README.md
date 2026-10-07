@@ -46,7 +46,7 @@ todo-app/
 ├── backend/           # Node.js + Express + Sequelize
 │   ├── controllers/   # Auth, Tasks, Goals, Projects, Analytics, Notifications
 │   ├── routes/        # API REST sécurisées par JWT
-│   ├── models/        # User, Task, Goal, GoalStep, Project, Notification, DailyMetrics
+│   ├── models/        # User, Task, Goal, Project, Notification, DailyMetrics
 │   ├── middleware/    # auth.middleware (Cookie HttpOnly), cron jobs
 │   └── Dockerfile
 │

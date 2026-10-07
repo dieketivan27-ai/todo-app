@@ -21,7 +21,7 @@ import { ScanDocumentComponent } from './scan-document.component';
             <h1 class="text-2xl font-extrabold text-gray-900">Objectifs Annuels</h1>
             <span class="bg-[#3b28cc]/10 text-[#3b28cc] text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wide">Cascade Active</span>
           </div>
-          <p class="text-sm text-gray-500 font-medium">Suivez vos objectifs et leur décomposition en étapes hebdomadaires.</p>
+          <p class="text-sm text-gray-500 font-medium">Suivez vos objectifs et les actions liées (tâches récurrentes dans le planning).</p>
         </div>
         <div class="flex items-center gap-2 sm:gap-3">
           <button (click)="showScanModal.set(true)"
@@ -159,7 +159,7 @@ export class GoalsDashboardComponent implements OnInit {
   }
 
   onDeleteGoal(id: number) {
-    if (!confirm('Supprimer cet objectif et toutes ses étapes ?')) return;
+    if (!confirm('Supprimer cet objectif et toutes ses actions liées ?')) return;
     this.goalService.delete(id).subscribe({ next: () => this.loadGoals() });
   }
 }

@@ -43,10 +43,6 @@ const Task = sequelize.define('Task', {
     type: DataTypes.INTEGER,
     allowNull: true
   },
-  goal_step_id: {
-    type: DataTypes.INTEGER,
-    allowNull: true
-  },
   user_id: {
     type: DataTypes.INTEGER,
     allowNull: true

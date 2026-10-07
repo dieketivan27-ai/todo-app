@@ -16,26 +16,16 @@ const PORT = process.env.PORT || 3000;
 
 // Associations
 const Goal = require('./models/goal.model');
-const GoalStep = require('./models/goal_step.model');
 const Task = require('./models/task.model');
 const User = require('./models/user.model');
 const Project = require('./models/project.model');
 const DailyMetrics = require('./models/daily_metrics.model');
-
-Goal.hasMany(GoalStep, { foreignKey: 'goal_id', as: 'steps', onDelete: 'CASCADE' });
-GoalStep.belongsTo(Goal, { foreignKey: 'goal_id', as: 'goal' });
-
-GoalStep.hasMany(Task, { foreignKey: 'goal_step_id', as: 'tasks', onDelete: 'CASCADE' });
-Task.belongsTo(GoalStep, { foreignKey: 'goal_step_id', as: 'step' });
 
 Goal.hasMany(Task, { foreignKey: 'goal_id', as: 'tasks', onDelete: 'CASCADE' });
 Task.belongsTo(Goal, { foreignKey: 'goal_id', as: 'goal' });
 
 User.hasMany(Goal, { foreignKey: 'user_id', as: 'goals', onDelete: 'CASCADE' });
 Goal.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
-
-User.hasMany(GoalStep, { foreignKey: 'user_id', as: 'goal_steps', onDelete: 'CASCADE' });
-GoalStep.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
 
 User.hasMany(Task, { foreignKey: 'user_id', as: 'tasks', onDelete: 'CASCADE' });
 Task.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
@@ -96,8 +86,11 @@ app.use((err, req, res, next) => {
 });
 
 // Start
+const { runRemoveGoalStepsMigration } = require('./migrations/remove-goal-steps');
+
 const start = async () => {
   await connectDB();
+  await runRemoveGoalStepsMigration(sequelize);
   await sequelize.sync({ alter: true });
   console.log('📦 Modèles synchronisés');
 

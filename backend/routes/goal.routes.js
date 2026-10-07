@@ -7,7 +7,6 @@ const {
   updateGoal,
   deleteGoal,
   getDashboard,
-  getGoalSteps,
   getActionVariables,
   createActionVariable,
   deleteActionVariable
@@ -15,7 +14,6 @@ const {
 
 router.get('/dashboard', getDashboard);
 router.get('/', getAllGoals);
-router.get('/:id/steps', getGoalSteps);
 router.get('/:id/action-variables', getActionVariables);
 router.post('/:id/action-variables', createActionVariable);
 router.delete('/:id/action-variables/:taskId', deleteActionVariable);

@@ -30,7 +30,6 @@ async function createActionVariableTask({
     status: 'TODO',
     category: goal.category,
     goal_id: goal.id,
-    goal_step_id: null,
     user_id: userId,
     freq_type: 'weekly_until_done',
     recurrence_hebdomadaire: true,
