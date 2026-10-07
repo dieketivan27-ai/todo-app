@@ -106,6 +106,8 @@ function withTimeout(promise, ms) {
 // ─── Background Gemini processing ─────────────────────────────────────────────
 async function runGeminiInBackground(taskId, imageBuffer, mimeType, tempFilePath) {
   const base64Image = imageBuffer.toString('base64');
+  
+  // Modèles à essayer en séquence. Si le premier échoue après X tentatives, on passe au suivant.
   const modelsToTry = [MODEL_NAME, 'gemini-2.5-flash'];
   let response;
   let finalModel = null;
@@ -113,46 +115,67 @@ async function runGeminiInBackground(taskId, imageBuffer, mimeType, tempFilePath
   try {
     for (const [modelIndex, modelName] of modelsToTry.entries()) {
       let retries = 0;
-      const maxRetries = modelIndex === 0 ? 3 : 2; // 3 retries for primary, 2 for fallback
+      const maxRetries = modelIndex === 0 ? 3 : 2; // 3 tentatives (1 + 2 retries) pour le principal
       const delays = [3000, 6000, 12000];
       let success = false;
 
-      while (true) {
+      while (retries < maxRetries) {
+        console.log(`[OCR:${taskId}] ${modelName} - Tentative ${retries + 1}/${maxRetries}...`);
+        
         try {
+          // Chaque tentative a son propre timeout
           response = await withTimeout(
             genAI.models.generateContent({
               model: modelName,
               contents: [{ parts: [{ text: PROMPT }, { inlineData: { data: base64Image, mimeType } }] }]
             }),
-            GEMINI_TIMEOUT_MS
+            45000 // 45s max par tentative (pour ne pas attendre éternellement si l'API hang)
           );
+          
           success = true;
           finalModel = modelName;
-          break; // success
+          console.log(`[OCR:${taskId}] ${modelName} - Succès à la tentative ${retries + 1}/${maxRetries} !`);
+          break; // Sortie de la boucle while (succès)
+          
         } catch (apiErr) {
           const errorMsg = (apiErr.message || '').toLowerCase();
           const isOverload =
-            apiErr.isTimeout || apiErr.status === 503 || apiErr.status === 429 ||
-            errorMsg.includes('unavailable') || errorMsg.includes('high demand') ||
-            errorMsg.includes('quota') || errorMsg.includes('exhausted');
+            apiErr.isTimeout || 
+            apiErr.status === 503 || 
+            apiErr.status === 429 ||
+            errorMsg.includes('unavailable') || 
+            errorMsg.includes('high demand') ||
+            errorMsg.includes('quota') || 
+            errorMsg.includes('exhausted') ||
+            errorMsg.includes('timeout') ||
+            errorMsg.includes('und_err'); // Capture les erreurs réseau internes du SDK Node
 
-          if (isOverload && retries < maxRetries) {
-            console.warn(`[OCR:${taskId}] Surcharge ${modelName} (tentative ${retries + 1}/${maxRetries}). Retry dans ${delays[retries]}ms...`);
-            await new Promise(r => setTimeout(r, delays[retries]));
-            retries++;
-          } else if (isOverload && modelIndex < modelsToTry.length - 1) {
-            console.warn(`[OCR:${taskId}] Echec des tentatives sur ${modelName}. Basculement sur modèle de secours...`);
-            break; // break inner loop to try next model
+          if (isOverload) {
+            console.warn(`[OCR:${taskId}] ${modelName} - Echec de la tentative ${retries + 1}/${maxRetries} (Surcharge/Timeout).`);
+            
+            if (retries < maxRetries - 1) {
+              console.log(`[OCR:${taskId}] Attente de ${delays[retries]}ms avant le prochain essai...`);
+              await new Promise(r => setTimeout(r, delays[retries]));
+              retries++;
+            } else {
+              console.warn(`[OCR:${taskId}] ${modelName} - Toutes les tentatives ont échoué.`);
+              break; // Sortie de la boucle while (échec, on passe au modèle suivant)
+            }
           } else {
-            throw apiErr; // Not an overload, or out of models/retries
+            console.error(`[OCR:${taskId}] Erreur fatale non liée à la surcharge:`, apiErr);
+            throw apiErr; // Erreur type 400 (mauvaise requête) ou 401 (clé API) => on abandonne tout
           }
         }
       }
 
-      if (success) break;
+      if (success) break; // Sortie de la boucle for (succès avec ce modèle, on arrête d'essayer les autres)
+      else if (modelIndex < modelsToTry.length - 1) {
+        console.warn(`[OCR:${taskId}] Basculement vers le modèle de secours: ${modelsToTry[modelIndex + 1]}...`);
+      }
     }
 
     if (!response) {
+      // Aucun modèle n'a réussi
       throw new Error("OVERLOAD_FATAL");
     }
 
