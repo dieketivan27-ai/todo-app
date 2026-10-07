@@ -12,19 +12,19 @@ import { TaskService } from '../../services/task.service';
     <div class="space-y-6 max-w-7xl mx-auto">
 
       <!-- Header -->
-      <div class="flex items-center justify-between">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 class="text-2xl font-extrabold text-gray-900 mb-1">Planning &amp; Time-blocking</h1>
           <p class="text-sm text-gray-500 font-medium">Organisation temporelle par blocs de concentration ininterrompue.</p>
         </div>
-        <div class="flex items-center gap-3">
-          <button (click)="goToToday()" *ngIf="weekOffset() !== 0" class="text-sm font-bold text-[#3b28cc] hover:underline mr-2 transition-all">
+        <div class="flex items-center gap-2 flex-wrap">
+          <button (click)="goToToday()" *ngIf="weekOffset() !== 0" class="text-sm font-bold text-[#3b28cc] hover:underline transition-all">
             Aujourd'hui
           </button>
           <button (click)="prevWeek()" class="flex items-center gap-2 border border-gray-200 bg-white text-gray-700 px-3 py-2 rounded-xl text-sm font-bold hover:bg-gray-50 transition-colors">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
           </button>
-          <span class="text-sm font-bold text-gray-700 bg-white border border-gray-200 rounded-xl px-4 py-2 shadow-sm">Semaine {{ weekNum() }} • {{ weekRange() }}</span>
+          <span class="text-sm font-bold text-gray-700 bg-white border border-gray-200 rounded-xl px-3 py-2 shadow-sm whitespace-nowrap">S{{ weekNum() }} • {{ weekRange() }}</span>
           <button (click)="nextWeek()" class="flex items-center gap-2 border border-gray-200 bg-white text-gray-700 px-3 py-2 rounded-xl text-sm font-bold hover:bg-gray-50 transition-colors">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
           </button>
@@ -33,15 +33,16 @@ import { TaskService } from '../../services/task.service';
 
       <!-- Week Calendar -->
       <div class="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
-        <div class="grid grid-cols-7">
+        <!-- Scrollable days row on mobile, grid on desktop -->
+        <div class="flex lg:grid lg:grid-cols-7 overflow-x-auto snap-x snap-mandatory scrollbar-none">
           <div *ngFor="let day of weekDays(); let i = index"
-            class="p-4 border-r border-gray-100 last:border-r-0 cursor-pointer transition-colors"
+            class="flex-shrink-0 w-[calc(100%/3.5)] min-w-[90px] sm:w-auto sm:min-w-0 lg:w-auto p-3 md:p-4 border-r border-gray-100 last:border-r-0 cursor-pointer transition-colors snap-start"
             [class]="i === selectedDay() ? 'bg-[#3b28cc] text-white' : 'hover:bg-gray-50'"
             (click)="selectedDay.set(i)">
-            <p class="text-[10px] font-bold uppercase tracking-wider mb-1" [class]="i === selectedDay() ? 'text-indigo-200' : 'text-gray-400'">{{ day.label }}</p>
-            <p class="text-2xl font-extrabold">{{ day.num }}</p>
-            <p class="text-[11px] font-semibold mt-1" [class]="i === selectedDay() ? 'text-indigo-200' : 'text-gray-400'">
-              {{ getTasksForDay(i).length }} créneaux
+            <p class="text-[9px] md:text-[10px] font-bold uppercase tracking-wider mb-1 truncate" [class]="i === selectedDay() ? 'text-indigo-200' : 'text-gray-400'">{{ day.label }}</p>
+            <p class="text-xl md:text-2xl font-extrabold">{{ day.num }}</p>
+            <p class="text-[10px] md:text-[11px] font-semibold mt-1" [class]="i === selectedDay() ? 'text-indigo-200' : 'text-gray-400'">
+              {{ getTasksForDay(i).length }} crén.
             </p>
           </div>
         </div>
@@ -49,12 +50,12 @@ import { TaskService } from '../../services/task.service';
 
       <!-- Day view -->
       <div>
-        <div class="flex items-center justify-between mb-4">
-          <div class="flex items-center gap-2 text-sm font-bold text-gray-700">
-            <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            Blocs programmés pour {{ weekDays()[selectedDay()].label }} {{ weekDays()[selectedDay()].num }} {{ currentMonth() }}
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+          <div class="flex items-center gap-2 text-sm font-bold text-gray-700 min-w-0">
+            <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span class="truncate">Blocs pour {{ weekDays()[selectedDay()].label }} {{ weekDays()[selectedDay()].num }} {{ currentMonth() }}</span>
           </div>
-          <div class="bg-[#3b28cc]/10 text-[#3b28cc] text-xs font-bold px-3 py-1.5 rounded-xl">
+          <div class="bg-[#3b28cc]/10 text-[#3b28cc] text-xs font-bold px-3 py-1.5 rounded-xl flex-shrink-0">
             {{ getTotalFocusHours() }}h 00m Total Focus
           </div>
         </div>
@@ -74,42 +75,46 @@ import { TaskService } from '../../services/task.service';
           </a>
         </div>
 
-        <!-- Task blocks -->
         <div *ngIf="displayTasks().length > 0" class="space-y-3">
-          <div *ngFor="let task of displayTasks()" class="bg-white border rounded-2xl p-4 shadow-sm flex items-center gap-4"
+          <div *ngFor="let task of displayTasks()" class="bg-white border rounded-2xl p-3 md:p-4 shadow-sm flex items-center gap-3 md:gap-4"
             [class]="task.status === 'DONE' ? 'border-emerald-200 bg-emerald-50/30' : task.status === 'IN_PROGRESS' ? 'border-amber-200' : 'border-gray-100'">
             <!-- Time slot -->
-            <div class="flex-shrink-0 text-center min-w-[90px]">
-              <span class="text-xs font-extrabold text-gray-700 bg-gray-100 px-3 py-1.5 rounded-lg block">
+            <div class="flex-shrink-0 text-center min-w-[70px] md:min-w-[90px]">
+              <span class="text-xs font-extrabold text-gray-700 bg-gray-100 px-2 md:px-3 py-1.5 rounded-lg block">
                 {{ task.start_time || '—' }}
               </span>
             </div>
 
             <!-- Title & tags -->
             <div class="flex-1 min-w-0">
-              <h4 class="font-bold text-gray-900 text-sm truncate">{{ task.title }}</h4>
-              <div class="flex items-center gap-2 mt-1">
+              <h4 class="font-bold text-gray-900 text-sm break-words line-clamp-2">{{ task.title }}</h4>
+              <div class="flex flex-wrap items-center gap-1.5 mt-1">
                 <span class="text-[10px] font-bold text-[#3b28cc] bg-indigo-50 px-1.5 py-0.5 rounded">{{ task.category }}</span>
-                <span class="text-[10px] font-bold text-gray-400">• DEEP WORK</span>
+                <span class="text-[10px] font-bold text-gray-400 hidden sm:inline">• DEEP WORK</span>
               </div>
             </div>
 
             <!-- Status badge -->
             <div class="flex-shrink-0">
               <span *ngIf="task.status === 'DONE'"
-                class="flex items-center gap-1.5 bg-emerald-50 text-emerald-600 border border-emerald-200 px-3 py-1.5 rounded-xl text-xs font-bold">
+                class="hidden sm:flex items-center gap-1.5 bg-emerald-50 text-emerald-600 border border-emerald-200 px-3 py-1.5 rounded-xl text-xs font-bold">
                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 Complété
               </span>
+              <span *ngIf="task.status === 'DONE'" class="sm:hidden w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center">
+                <svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+              </span>
               <span *ngIf="task.status === 'IN_PROGRESS'"
-                class="flex items-center gap-1.5 bg-amber-50 text-amber-600 border border-amber-200 px-3 py-1.5 rounded-xl text-xs font-bold">
+                class="hidden sm:flex items-center gap-1.5 bg-amber-50 text-amber-600 border border-amber-200 px-3 py-1.5 rounded-xl text-xs font-bold">
                 <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
                 En cours
               </span>
+              <span *ngIf="task.status === 'IN_PROGRESS'" class="sm:hidden w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
               <span *ngIf="task.status === 'TODO' || task.status === 'LATE'"
-                class="flex items-center gap-1.5 bg-indigo-50 text-[#3b28cc] border border-indigo-100 px-3 py-1.5 rounded-xl text-xs font-bold">
+                class="hidden sm:flex items-center gap-1.5 bg-indigo-50 text-[#3b28cc] border border-indigo-100 px-3 py-1.5 rounded-xl text-xs font-bold">
                 Prévu
               </span>
+              <span *ngIf="task.status === 'TODO' || task.status === 'LATE'" class="sm:hidden w-2 h-2 rounded-full bg-indigo-300"></span>
             </div>
           </div>
         </div>

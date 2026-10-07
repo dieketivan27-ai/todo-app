@@ -25,6 +25,16 @@
   }
 }
 
+@layer utilities {
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 @layer components {
   .btn-primary {
     @apply inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-medium rounded-lg

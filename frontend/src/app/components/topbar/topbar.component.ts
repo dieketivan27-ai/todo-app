@@ -13,7 +13,7 @@ import { LayoutService } from '../../services/layout.service';
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule],
   template: `
-    <header class="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-3 md:px-6 sticky top-0 z-40 shadow-sm gap-2 md:gap-4">
+    <header class="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-3 md:px-6 sticky top-0 z-40 shadow-sm gap-2 overflow-hidden">
 
       <!-- Left: Burger + Greeting + Date -->
       <div class="flex items-center gap-2 md:gap-4">
@@ -32,9 +32,9 @@ import { LayoutService } from '../../services/layout.service';
         </div>
       </div>
 
-      <!-- Center: Search -->
-      <div class="flex-1 max-w-md px-1 md:px-6">
-        <div class="relative group">
+      <!-- Center: Search - hidden on xs, visible from sm -->
+      <div class="hidden sm:flex flex-1 max-w-md px-1 md:px-6">
+        <div class="relative group w-full">
           <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
@@ -42,24 +42,31 @@ import { LayoutService } from '../../services/layout.service';
           </div>
           <input type="text" [(ngModel)]="searchQuery" (keyup.enter)="onSearch()"
             class="block w-full pl-10 pr-12 py-2 border border-gray-200 rounded-xl leading-5 bg-gray-50 placeholder-gray-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#3b28cc]/20 focus:border-[#3b28cc] transition-all text-sm font-medium"
-            placeholder="Rechercher une tâche...">
+            placeholder="Rechercher...">
           <div class="absolute inset-y-0 right-0 pr-2 flex items-center">
-            <span class="text-[10px] font-bold text-gray-400 border border-gray-200 rounded px-1.5 py-0.5 bg-white hidden sm:block">⌘K</span>
+            <span class="text-[10px] font-bold text-gray-400 border border-gray-200 rounded px-1.5 py-0.5 bg-white hidden md:block">⌘K</span>
           </div>
         </div>
       </div>
 
+      <!-- Search icon only on xs (< 640px) -->
+      <button (click)="onSearch()" class="sm:hidden p-2 text-gray-400 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0">
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+      </button>
+
       <!-- Right: Actions & User -->
-      <div class="flex items-center gap-2 md:gap-3">
+      <div class="flex items-center gap-1.5 md:gap-3 flex-shrink-0">
         <!-- Nouvelle tâche button - opens modal -->
         <button (click)="showModal.set(true)"
-          class="bg-[#3b28cc] hover:bg-[#3222b0] text-white p-2 md:px-4 md:py-2 rounded-xl text-sm font-bold shadow-sm transition-colors flex items-center gap-2">
+          class="bg-[#3b28cc] hover:bg-[#3222b0] text-white p-2 md:px-4 md:py-2 rounded-xl text-sm font-bold shadow-sm transition-colors flex items-center gap-2 flex-shrink-0">
           <svg class="w-5 h-5 md:w-4 md:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
           <span class="hidden md:inline">Nouvelle tâche</span>
         </button>
 
         <!-- Notifications bell -->
-        <div class="relative">
+        <div class="relative flex-shrink-0">
           <button (click)="toggleNotifications()" class="relative p-2 text-gray-400 hover:text-gray-600 transition-colors rounded-lg hover:bg-gray-50">
             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
             <span *ngIf="unreadCount() > 0" class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
@@ -95,7 +102,7 @@ import { LayoutService } from '../../services/layout.service';
         </div>
 
         <!-- User chip + Dropdown -->
-        <div class="relative user-menu-container" *ngIf="auth.currentUser$ | async as user">
+        <div class="relative user-menu-container flex-shrink-0" *ngIf="auth.currentUser$ | async as user">
           <button (click)="toggleUserMenu()" class="flex items-center gap-2 bg-indigo-50/60 border border-indigo-100 rounded-xl p-1 md:pr-3 hover:bg-indigo-100/60 transition-colors">
             <div class="w-7 h-7 rounded-lg bg-[#3b28cc] flex items-center justify-center text-white font-extrabold text-xs shadow-sm">
               {{ user.name.charAt(0).toUpperCase() }}
