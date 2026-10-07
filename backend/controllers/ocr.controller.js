@@ -57,6 +57,25 @@ Règles importantes:
 
 const MODEL_NAME = 'gemini-3.8-flash';
 
+// ─── Startup Model Logging ──────────────────────────────────────────────────────
+(async function logAvailableModels() {
+  try {
+    if (process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== 'VOTRE_CLE_GEMINI_ICI') {
+      console.log('[OCR] Récupération de la liste des modèles disponibles...');
+      const response = await genAI.models.list();
+      const availableModels = [];
+      for await (const model of response) {
+        if (model.supportedActions && model.supportedActions.includes('generateContent')) {
+          availableModels.push(model.name.replace(/^models\//, ''));
+        }
+      }
+      console.log('[OCR] Modèles disponibles supportant generateContent :', availableModels.join(', '));
+    }
+  } catch (error) {
+    console.error('[OCR] Erreur lors de la récupération des modèles:', error.message);
+  }
+})();
+
 // ─── Image compression ────────────────────────────────────────────────────────
 async function compressImage(inputBuffer) {
   const meta = await sharp(inputBuffer).metadata();
@@ -108,7 +127,7 @@ async function runGeminiInBackground(taskId, imageBuffer, mimeType, tempFilePath
   const base64Image = imageBuffer.toString('base64');
   
   // Modèles à essayer en séquence. Si le premier échoue après X tentatives, on passe au suivant.
-  const modelsToTry = [MODEL_NAME, 'gemini-2.5-flash'];
+  const modelsToTry = [MODEL_NAME, 'gemini-3.7-flash'];
   let response;
   let finalModel = null;
 
