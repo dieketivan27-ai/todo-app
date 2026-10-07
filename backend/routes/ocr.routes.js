@@ -1,7 +1,7 @@
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
-const { analyzeDocument } = require('../controllers/ocr.controller');
+const { analyzeDocument, getTaskStatus } = require('../controllers/ocr.controller');
 
 const router = express.Router();
 
@@ -31,7 +31,11 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 } // 10MB max
 });
 
-// POST /api/ocr/analyze
+// POST /api/ocr/analyze — submit image, returns { taskId, status: 'pending' }
 router.post('/analyze', upload.single('image'), analyzeDocument);
 
+// GET /api/ocr/status/:taskId — poll for result
+router.get('/status/:taskId', getTaskStatus);
+
 module.exports = router;
+

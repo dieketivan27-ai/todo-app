@@ -1,7 +1,8 @@
 import {
-  Component, Output, EventEmitter, signal, HostListener, inject
+  Component, Output, EventEmitter, signal, HostListener, inject, OnDestroy
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Subscription, switchMap, filter } from 'rxjs';
 import { OcrService, OcrGoalData, OcrResult } from '../../services/ocr.service';
 import { GoalCreate, GOAL_COLORS, CATEGORIES } from '../../models/task.model';
 
@@ -579,7 +580,7 @@ type ScanState = 'idle' | 'analyzing' | 'results' | 'error';
 .btn-import-all:hover { background: rgba(16,185,129,0.25); }
   `]
 })
-export class ScanDocumentComponent {
+export class ScanDocumentComponent implements OnDestroy {
   private ocrService = inject(OcrService);
 
   @Output() goalsImported = new EventEmitter<GoalCreate[]>();
@@ -594,6 +595,7 @@ export class ScanDocumentComponent {
   selectedGoalIndex = signal<number | null>(null);
   elapsedSeconds = signal(0);
   private timerRef: ReturnType<typeof setInterval> | null = null;
+  private pollingSub: Subscription | null = null;
 
   onBackdropClick(event: MouseEvent) {
     if ((event.target as HTMLElement).classList.contains('scan-backdrop')) {
@@ -637,15 +639,24 @@ export class ScanDocumentComponent {
     this.elapsedSeconds.set(0);
     this.timerRef = setInterval(() => this.elapsedSeconds.update(s => s + 1), 1000);
 
-    this.ocrService.analyzeDocument(file).subscribe({
+    // Step 1: submit the image and get a taskId immediately
+    this.pollingSub = this.ocrService.submitDocument(file).pipe(
+      switchMap(res => {
+        console.log('[OCR] Task created:', res.taskId);
+        // Step 2: poll for the result every 3s
+        return this.ocrService.pollStatus(res.taskId);
+      }),
+      // Skip intermediate null emissions from pending state
+      filter((result): result is OcrResult => result !== null && result !== undefined)
+    ).subscribe({
       next: (result) => {
-        this.stopTimer();
+        this.stopAll();
         this.ocrResult.set(result);
         if (result.goals.length === 1) this.selectedGoalIndex.set(0);
         this.state.set('results');
       },
       error: (err) => {
-        this.stopTimer();
+        this.stopAll();
         const msg = err.error?.message || err.message || 'Erreur inconnue';
         this.errorMessage.set(msg);
         this.state.set('error');
@@ -653,12 +664,12 @@ export class ScanDocumentComponent {
     });
   }
 
-  private stopTimer() {
-    if (this.timerRef) {
-      clearInterval(this.timerRef);
-      this.timerRef = null;
-    }
+  private stopAll() {
+    if (this.timerRef) { clearInterval(this.timerRef); this.timerRef = null; }
+    if (this.pollingSub) { this.pollingSub.unsubscribe(); this.pollingSub = null; }
   }
+
+  ngOnDestroy() { this.stopAll(); }
 
   selectGoal(index: number) {
     this.selectedGoalIndex.set(index === this.selectedGoalIndex() ? null : index);
@@ -691,7 +702,7 @@ export class ScanDocumentComponent {
   }
 
   reset() {
-    this.stopTimer();
+    this.stopAll();
     this.state.set('idle');
     this.previewUrl.set(null);
     this.selectedFile.set(null);

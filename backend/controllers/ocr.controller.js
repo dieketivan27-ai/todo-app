@@ -1,17 +1,31 @@
 const { GoogleGenAI } = require('@google/genai');
 const fs = require('fs');
 const sharp = require('sharp');
+const { randomUUID } = require('crypto');
 
 const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-// Image limits before sending to Gemini
-// 2000px preserves text readability for dense documents; quality 90% avoids OCR loss
-const MAX_IMAGE_PX      = 2000;   // max width or height in pixels
-const MAX_IMAGE_KB      = 3000;   // soft cap ~3 MB — only compress further if exceeded
-const JPEG_QUALITY_HIGH = 90;     // default quality (high — text must remain legible)
-const JPEG_QUALITY_MIN  = 65;     // floor quality (never go below this for OCR)
-const GEMINI_TIMEOUT_MS = 55000;  // 55s — generous for dense docs, below Render's 60s limit
+// ─── Constants ───────────────────────────────────────────────────────────────
+const MAX_IMAGE_PX      = 2000;
+const MAX_IMAGE_KB      = 3000;
+const JPEG_QUALITY_HIGH = 90;
+const JPEG_QUALITY_MIN  = 65;
+const GEMINI_TIMEOUT_MS = 95000;   // 95s — no Render timeout constraint with async
+const TASK_TTL_MS       = 10 * 60 * 1000; // tasks live 10 min in memory
 
+// ─── In-memory task store ─────────────────────────────────────────────────────
+// { [taskId]: { status, result, error, createdAt } }
+const tasks = new Map();
+
+// Auto-clean stale tasks every 5 minutes
+setInterval(() => {
+  const cutoff = Date.now() - TASK_TTL_MS;
+  for (const [id, task] of tasks) {
+    if (task.createdAt < cutoff) tasks.delete(id);
+  }
+}, 5 * 60 * 1000);
+
+// ─── Prompt ───────────────────────────────────────────────────────────────────
 const PROMPT = `Tu es un assistant expert en extraction de données structurées depuis des documents RH et de planification.
 
 Analyse cette image de document et extrait toutes les informations relatives aux objectifs annuels, actions et indicateurs.
@@ -43,30 +57,23 @@ Règles importantes:
 
 const MODEL_NAME = 'gemini-3.8-flash';
 
-/**
- * Compress and resize an image buffer using sharp.
- * Ensures the image fits within MAX_IMAGE_PX and MAX_IMAGE_KB.
- * Returns { buffer, mimeType } with the optimized image.
- */
+// ─── Image compression ────────────────────────────────────────────────────────
 async function compressImage(inputBuffer) {
   const meta = await sharp(inputBuffer).metadata();
   const originalKB = Math.round(inputBuffer.length / 1024);
   console.log(`[OCR] Image reçue : ${originalKB} Ko, ${meta.width}x${meta.height}px (format: ${meta.format})`);
 
-  // Step 1: resize only if the image exceeds MAX_IMAGE_PX on any side
   const needsResize = (meta.width || 0) > MAX_IMAGE_PX || (meta.height || 0) > MAX_IMAGE_PX;
-  let pipeline = sharp(inputBuffer).rotate(); // auto-orient from EXIF
+  let pipeline = sharp(inputBuffer).rotate();
 
   if (needsResize) {
     pipeline = pipeline.resize(MAX_IMAGE_PX, MAX_IMAGE_PX, { fit: 'inside', withoutEnlargement: true });
-    console.log(`[OCR] Redimensionnement : → ${MAX_IMAGE_PX}px max (côté le plus long)`);
+    console.log(`[OCR] Redimensionnement : → ${MAX_IMAGE_PX}px max`);
   }
 
-  // Step 2: encode as JPEG at high quality — prioritise readability for OCR
   let quality = JPEG_QUALITY_HIGH;
   let outputBuffer = await pipeline.jpeg({ quality, mozjpeg: true }).toBuffer();
 
-  // Step 3: only reduce quality further if image is unexpectedly large (> soft cap)
   while (outputBuffer.length > MAX_IMAGE_KB * 1024 && quality > JPEG_QUALITY_MIN) {
     quality -= 10;
     outputBuffer = await sharp(inputBuffer)
@@ -78,15 +85,12 @@ async function compressImage(inputBuffer) {
 
   const finalKB = Math.round(outputBuffer.length / 1024);
   const saving  = Math.round((1 - finalKB / originalKB) * 100);
-  console.log(`[OCR] Image compressée : ${finalKB} Ko (qualité JPEG: ${quality}%) — gain: ${saving}%`);
+  console.log(`[OCR] Image compressée : ${finalKB} Ko (qualité: ${quality}%) — gain: ${saving}%`);
 
   return { buffer: outputBuffer, mimeType: 'image/jpeg' };
 }
 
-/**
- * Wraps a promise with an AbortController-based timeout.
- * Throws a specific TIMEOUT error if the deadline is exceeded.
- */
+// ─── Timeout helper ───────────────────────────────────────────────────────────
 function withTimeout(promise, ms) {
   let timer;
   const timeout = new Promise((_, reject) => {
@@ -99,6 +103,100 @@ function withTimeout(promise, ms) {
   return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
 }
 
+// ─── Background Gemini processing ─────────────────────────────────────────────
+async function runGeminiInBackground(taskId, imageBuffer, mimeType, tempFilePath) {
+  const base64Image = imageBuffer.toString('base64');
+  let retries = 0;
+  const maxRetries = 3;
+  const delays = [3000, 6000, 12000];
+
+  try {
+    let response;
+    while (true) {
+      try {
+        response = await withTimeout(
+          genAI.models.generateContent({
+            model: MODEL_NAME,
+            contents: [{ parts: [{ text: PROMPT }, { inlineData: { data: base64Image, mimeType } }] }]
+          }),
+          GEMINI_TIMEOUT_MS
+        );
+        break;
+      } catch (apiErr) {
+        if (apiErr.isTimeout) throw apiErr;
+
+        const errorMsg = (apiErr.message || '').toLowerCase();
+        const isOverload =
+          apiErr.status === 503 || apiErr.status === 429 ||
+          errorMsg.includes('unavailable') || errorMsg.includes('high demand') ||
+          errorMsg.includes('quota') || errorMsg.includes('exhausted');
+
+        if (isOverload && retries < maxRetries) {
+          console.warn(`[OCR:${taskId}] Surcharge Gemini (tentative ${retries + 1}/${maxRetries}). Retry dans ${delays[retries]}ms...`);
+          await new Promise(r => setTimeout(r, delays[retries]));
+          retries++;
+        } else {
+          throw apiErr;
+        }
+      }
+    }
+
+    const text = response.text.trim();
+    const cleaned = text.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/i, '').trim();
+
+    let parsed;
+    try {
+      parsed = JSON.parse(cleaned);
+    } catch {
+      tasks.set(taskId, {
+        ...tasks.get(taskId),
+        status: 'failed',
+        error: 'L\'IA n\'a pas pu extraire des objectifs valides depuis ce document. Essayez avec une image plus claire.'
+      });
+      return;
+    }
+
+    if (parsed.error) {
+      tasks.set(taskId, { ...tasks.get(taskId), status: 'failed', error: parsed.error });
+      return;
+    }
+
+    tasks.set(taskId, { ...tasks.get(taskId), status: 'completed', result: parsed });
+    console.log(`[OCR:${taskId}] ✓ Terminé avec ${parsed.goals?.length || 0} objectif(s).`);
+
+  } catch (err) {
+    console.error(`[OCR:${taskId}] Erreur:`, err.message);
+    const errorMsg = (err.message || '').toLowerCase();
+
+    let userMessage;
+    if (err.isTimeout) {
+      userMessage = 'Le traitement a dépassé 95 secondes. Essayez avec une image plus légère ou réessayez.';
+    } else if (errorMsg.includes('api_key') || err.status === 401 || err.status === 403) {
+      userMessage = 'Clé API Gemini invalide ou expirée.';
+    } else if (err.status === 404 || errorMsg.includes('not found') || errorMsg.includes('not supported')) {
+      userMessage = 'Le modèle IA est introuvable. Veuillez contacter le support.';
+    } else if (err.status === 429 || errorMsg.includes('quota') || errorMsg.includes('exhausted')) {
+      userMessage = 'Le service IA est surchargé. Réessayez dans quelques instants.';
+    } else {
+      userMessage = 'Une erreur de communication avec l\'IA est survenue. Réessayez.';
+    }
+
+    tasks.set(taskId, { ...tasks.get(taskId), status: 'failed', error: userMessage });
+  } finally {
+    // Clean up temp file
+    if (tempFilePath && fs.existsSync(tempFilePath)) {
+      try { fs.unlinkSync(tempFilePath); } catch (_) {}
+    }
+  }
+}
+
+// ─── Controllers ──────────────────────────────────────────────────────────────
+
+/**
+ * POST /api/ocr/analyze
+ * Accepts an image, compresses it, and fires background Gemini processing.
+ * Returns immediately with { taskId, status: 'pending' }.
+ */
 const analyzeDocument = async (req, res) => {
   try {
     if (!req.file) {
@@ -112,130 +210,53 @@ const analyzeDocument = async (req, res) => {
       });
     }
 
-    // Read and compress image
+    const taskId = randomUUID();
+    tasks.set(taskId, { status: 'pending', result: null, error: null, createdAt: Date.now() });
+
+    // Read and compress image synchronously before returning (fast operation)
     const rawBuffer = fs.readFileSync(req.file.path);
     const { buffer: imageBuffer, mimeType } = await compressImage(rawBuffer);
-    const base64Image = imageBuffer.toString('base64');
 
-    // Call Gemini with exponential backoff retry
-    let response;
-    let retries = 0;
-    const maxRetries = 3;
-    const delays = [2000, 4000, 8000];
+    // Fire background processing — do NOT await
+    runGeminiInBackground(taskId, imageBuffer, mimeType, req.file.path);
 
-    while (true) {
-      try {
-        response = await withTimeout(
-          genAI.models.generateContent({
-            model: MODEL_NAME,
-            contents: [
-              {
-                parts: [
-                  { text: PROMPT },
-                  { inlineData: { data: base64Image, mimeType } }
-                ]
-              }
-            ]
-          }),
-          GEMINI_TIMEOUT_MS
-        );
-        break; // Success
-      } catch (apiErr) {
-        // Timeout: do not retry
-        if (apiErr.isTimeout) throw apiErr;
+    console.log(`[OCR:${taskId}] Tâche créée, traitement en arrière-plan...`);
 
-        const errorMsg = (apiErr.message || '').toLowerCase();
-        const isOverload =
-          apiErr.status === 503 || apiErr.status === 429 ||
-          errorMsg.includes('unavailable') || errorMsg.includes('high demand') ||
-          errorMsg.includes('quota') || errorMsg.includes('exhausted');
-
-        if (isOverload && retries < maxRetries) {
-          console.warn(`[OCR] Surcharge Gemini (tentative ${retries + 1}/${maxRetries}). Retry dans ${delays[retries]}ms...`);
-          await new Promise(resolve => setTimeout(resolve, delays[retries]));
-          retries++;
-        } else {
-          throw apiErr; // Other error or max retries: propagate
-        }
-      }
-    }
-
-    const text = response.text.trim();
-
-    // Clean potential markdown code blocks
-    const cleaned = text
-      .replace(/^```json\s*/i, '')
-      .replace(/^```\s*/i, '')
-      .replace(/\s*```$/i, '')
-      .trim();
-
-    let parsed;
-    try {
-      parsed = JSON.parse(cleaned);
-    } catch (parseErr) {
-      console.error('JSON parse error:', parseErr, '\nRaw text:', text);
-      return res.status(422).json({
-        success: false,
-        message: 'L\'IA n\'a pas pu extraire des objectifs valides depuis ce document. Veuillez essayer avec une image plus claire.',
-        rawResponse: text
-      });
-    }
-
-    if (parsed.error) {
-      return res.status(422).json({ success: false, message: parsed.error });
-    }
-
-    // Clean up temp file
-    if (req.file && fs.existsSync(req.file.path)) {
-      fs.unlinkSync(req.file.path);
-    }
-
-    return res.json({ success: true, data: parsed });
+    return res.json({ success: true, taskId, status: 'pending' });
 
   } catch (err) {
-    console.error('OCR error:', err.message || err);
-
-    // Clean up temp file if exists
+    console.error('[OCR] Erreur lors de la création de la tâche:', err.message);
     if (req.file && fs.existsSync(req.file.path)) {
       try { fs.unlinkSync(req.file.path); } catch (_) {}
     }
-
-    // Timeout (55s exceeded)
-    if (err.isTimeout) {
-      return res.status(504).json({
-        success: false,
-        message: 'Le traitement du document a pris trop de temps (limite de 55 secondes atteinte). Essayez avec une image plus légère, ou réessayez — les documents denses peuvent parfois nécessiter plusieurs tentatives.'
-      });
-    }
-
-    const errorMsg = (err.message || '').toLowerCase();
-
-    if (errorMsg.includes('api_key') || errorMsg.includes('api key') || err.status === 401 || err.status === 403) {
-      return res.status(401).json({
-        success: false,
-        message: 'L\'accès au service IA est refusé (clé API invalide ou expirée).'
-      });
-    }
-
-    if (err.status === 404 || errorMsg.includes('not found') || errorMsg.includes('not supported')) {
-      return res.status(503).json({
-        success: false,
-        message: 'Le modèle IA est introuvable ou incompatible. Veuillez contacter le support.'
-      });
-    }
-
-    if (err.status === 429 || errorMsg.includes('quota') || errorMsg.includes('exhausted') || errorMsg.includes('rate limit')) {
-      return res.status(429).json({
-        success: false,
-        message: 'Le service IA est actuellement surchargé. Veuillez patienter quelques instants avant de réessayer.'
-      });
-    }
-
     return res.status(500).json({
       success: false,
-      message: 'Une erreur de communication avec l\'IA est survenue. Veuillez vérifier votre connexion et réessayer.'
+      message: 'Impossible de démarrer l\'analyse. Vérifiez votre connexion et réessayez.'
     });
   }
 };
 
-module.exports = { analyzeDocument };
+/**
+ * GET /api/ocr/status/:taskId
+ * Returns current task status: pending | completed | failed
+ */
+const getTaskStatus = (req, res) => {
+  const { taskId } = req.params;
+  const task = tasks.get(taskId);
+
+  if (!task) {
+    return res.status(404).json({ success: false, message: 'Tâche introuvable ou expirée.' });
+  }
+
+  if (task.status === 'completed') {
+    return res.json({ success: true, status: 'completed', data: task.result });
+  }
+
+  if (task.status === 'failed') {
+    return res.json({ success: true, status: 'failed', message: task.error });
+  }
+
+  return res.json({ success: true, status: 'pending' });
+};
+
+module.exports = { analyzeDocument, getTaskStatus };
