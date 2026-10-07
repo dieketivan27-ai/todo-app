@@ -75,12 +75,7 @@ import { TaskService } from '../../services/task.service';
         <div *ngIf="!loading() && displayTasks().length > 0" class="space-y-3">
           <div *ngFor="let task of displayTasks()"
             class="bg-white border rounded-2xl p-3 md:p-4 shadow-sm flex items-center gap-3 md:gap-4"
-            [class.border-violet-200]="task.is_action_variable"
-            [class.bg-violet-50/40]="task.is_action_variable"
-            [class.border-emerald-200]="!task.is_action_variable && task.status === 'DONE'"
-            [class.bg-emerald-50/30]="!task.is_action_variable && task.status === 'DONE'"
-            [class.border-amber-200]="!task.is_action_variable && task.status === 'IN_PROGRESS'"
-            [class.border-gray-100]="!task.is_action_variable && (task.status === 'TODO' || task.status === 'LATE')">
+            [ngClass]="taskRowClasses(task)">
             <div class="flex-shrink-0 text-center min-w-[70px] md:min-w-[90px]">
               <span class="text-xs font-extrabold text-gray-700 bg-gray-100 px-2 md:px-3 py-1.5 rounded-lg block">
                 {{ task.start_time || '—' }}
@@ -249,6 +244,18 @@ export class PlanningComponent implements OnInit {
 
   getTotalFocusHours(): number {
     return Math.max(0, Math.ceil(this.displayTasks().length * 1.5));
+  }
+
+  taskRowClasses(task: PlanningSlot): Record<string, boolean> {
+    const action = !!task.is_action_variable;
+    return {
+      'border-violet-200': action,
+      'bg-violet-50/40': action,
+      'border-emerald-200': !action && task.status === 'DONE',
+      'bg-emerald-50/30': !action && task.status === 'DONE',
+      'border-amber-200': !action && task.status === 'IN_PROGRESS',
+      'border-gray-100': !action && (task.status === 'TODO' || task.status === 'LATE')
+    };
   }
 
   markActionDone(task: PlanningSlot) {
