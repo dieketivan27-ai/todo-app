@@ -1,45 +1,45 @@
 <div class="space-y-6 animate-fade-in max-w-5xl">
   
   <!-- Header -->
-  <div class="flex items-center justify-between">
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
     <div>
       <div class="flex items-center gap-3 mb-1">
         <h1 class="text-2xl font-extrabold text-gray-900">Hiérarchie des Objectifs</h1>
-        <span class="bg-[#3b28cc]/10 text-[#3b28cc] text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wide">Cascade Active</span>
+        <span class="bg-[#3b28cc]/10 text-[#3b28cc] text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wide hidden sm:inline-block">Cascade Active</span>
       </div>
       <p class="text-sm text-gray-500 font-medium">Transmission d'impact instantanée entre vos horizons annuels et vos actions de terrain.</p>
     </div>
     
-    <div class="flex items-center bg-gray-100 p-1 rounded-xl">
-      <button class="px-4 py-1.5 rounded-lg text-sm font-bold bg-white text-gray-900 shadow-sm">Vue Cascade</button>
-      <button class="px-4 py-1.5 rounded-lg text-sm font-bold text-gray-500 hover:text-gray-900 transition-colors">Annuel</button>
-      <button class="px-4 py-1.5 rounded-lg text-sm font-bold text-gray-500 hover:text-gray-900 transition-colors">Mensuel</button>
-      <button class="px-4 py-1.5 rounded-lg text-sm font-bold text-gray-500 hover:text-gray-900 transition-colors">Semaine</button>
+    <div class="flex flex-wrap items-center bg-gray-100 p-1 rounded-xl w-full md:w-auto">
+      <button class="flex-1 md:flex-none px-4 py-1.5 rounded-lg text-sm font-bold bg-white text-gray-900 shadow-sm">Vue Cascade</button>
+      <button class="flex-1 md:flex-none px-4 py-1.5 rounded-lg text-sm font-bold text-gray-500 hover:text-gray-900 transition-colors">Annuel</button>
+      <button class="hidden sm:block px-4 py-1.5 rounded-lg text-sm font-bold text-gray-500 hover:text-gray-900 transition-colors">Mensuel</button>
+      <button class="hidden sm:block px-4 py-1.5 rounded-lg text-sm font-bold text-gray-500 hover:text-gray-900 transition-colors">Semaine</button>
     </div>
   </div>
 
   <!-- Banner -->
-  <div class="bg-indigo-50/50 border border-[#3b28cc]/20 rounded-2xl p-6 shadow-sm flex items-center justify-between">
-    <div class="flex items-center gap-4">
-      <div class="w-12 h-12 bg-white rounded-xl shadow-sm border border-indigo-100 flex items-center justify-center text-[#3b28cc]">
-        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+  <div class="bg-indigo-50/50 border border-[#3b28cc]/20 rounded-2xl p-6 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+    <div class="flex items-start sm:items-center gap-4">
+      <div class="w-10 h-10 sm:w-12 sm:h-12 flex-shrink-0 bg-white rounded-xl shadow-sm border border-indigo-100 flex items-center justify-center text-[#3b28cc]">
+        <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
       </div>
       <div>
-        <div class="flex items-center gap-2 mb-0.5">
-          <h3 class="font-bold text-gray-900">Transmission d'Impact Automatique</h3>
+        <div class="flex flex-wrap items-center gap-2 mb-0.5">
+          <h3 class="font-bold text-gray-900 text-sm sm:text-base">Transmission d'Impact</h3>
           <span class="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-1.5 py-0.5 rounded">Moteur V3.4</span>
         </div>
-        <p class="text-sm text-gray-500 font-medium">Chaque tâche cochée répercute son poids de progression à 100% sur le jalon parent.</p>
+        <p class="text-xs sm:text-sm text-gray-500 font-medium">Chaque tâche cochée répercute son poids de progression à 100% sur le jalon parent.</p>
       </div>
     </div>
     
-    <div class="flex items-center gap-8">
+    <div class="flex items-center w-full sm:w-auto justify-around sm:justify-end gap-8">
       <div class="text-center">
-        <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">Score d'alignement</p>
+        <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">Score</p>
         <p class="text-2xl font-extrabold text-[#3b28cc]">94.2%</p>
       </div>
       <div class="text-center">
-        <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">Objectifs Actifs</p>
+        <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">Objectifs</p>
         <p class="text-2xl font-extrabold text-gray-900">12</p>
       </div>
     </div>

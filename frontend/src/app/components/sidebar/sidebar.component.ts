@@ -5,13 +5,16 @@ import { AuthService } from '../../services/auth.service';
 import { TaskService } from '../../services/task.service';
 import { GoalService } from '../../services/goal.service';
 import { TaskStats } from '../../models/task.model';
+import { LayoutService } from '../../services/layout.service';
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
   imports: [CommonModule, RouterModule],
   template: `
-    <div class="w-64 h-screen bg-white border-r border-gray-100 flex flex-col fixed left-0 top-0 overflow-y-auto z-50 shadow-sm">
+    <div class="w-64 h-screen bg-white border-r border-gray-100 flex flex-col fixed left-0 top-0 overflow-y-auto z-50 shadow-sm transition-transform duration-300 md:translate-x-0"
+         [class.-translate-x-full]="!layout.sidebarOpen()"
+         [class.translate-x-0]="layout.sidebarOpen()">
 
       <!-- Logo -->
       <div class="p-6 flex items-center gap-3">
@@ -130,6 +133,7 @@ import { TaskStats } from '../../models/task.model';
 export class SidebarComponent implements OnInit {
   auth = inject(AuthService);
   router = inject(Router);
+  layout = inject(LayoutService);
   private taskService = inject(TaskService);
   private goalService = inject(GoalService);
 
@@ -139,5 +143,9 @@ export class SidebarComponent implements OnInit {
   ngOnInit() {
     this.taskService.getStats().subscribe({ next: s => this.stats.set(s), error: () => {} });
     this.goalService.getAll().subscribe({ next: g => this.projectCount.set(g.length), error: () => {} });
+    
+    this.router.events.subscribe(() => {
+      this.layout.closeSidebar();
+    });
   }
 }

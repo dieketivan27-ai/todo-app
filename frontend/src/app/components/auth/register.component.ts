@@ -13,7 +13,7 @@ import { AuthService } from '../../services/auth.service';
       <div class="fixed top-0 right-0 w-96 h-96 bg-blue-100 rounded-full filter blur-3xl opacity-50 -translate-y-1/2 translate-x-1/2"></div>
       <div class="fixed bottom-0 left-0 w-72 h-72 bg-indigo-100 rounded-full filter blur-3xl opacity-40 translate-y-1/2 -translate-x-1/2"></div>
 
-      <div class="relative max-w-md w-full space-y-8 p-10 bg-white/80 backdrop-blur-sm border border-gray-100 rounded-2xl shadow-xl">
+      <div class="relative max-w-md w-full space-y-8 p-6 sm:p-10 bg-white/80 backdrop-blur-sm border border-gray-100 rounded-2xl shadow-xl">
         <div class="flex flex-col items-center">
           <div class="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg mb-4">
             <svg class="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>

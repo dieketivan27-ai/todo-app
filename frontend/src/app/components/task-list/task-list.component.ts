@@ -25,8 +25,8 @@ import { TaskService } from '../../services/task.service';
       </div>
 
       <!-- Search & Filters Bar -->
-      <div class="bg-white border border-gray-100 rounded-2xl p-4 flex items-center gap-4 shadow-sm">
-        <div class="relative flex-1 max-w-sm">
+      <div class="bg-white border border-gray-100 rounded-2xl p-4 flex flex-col md:flex-row items-stretch md:items-center gap-4 shadow-sm">
+        <div class="relative flex-1 w-full md:max-w-sm">
           <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
           </div>
@@ -35,13 +35,13 @@ import { TaskService } from '../../services/task.service';
             placeholder="Rechercher une tâche...">
         </div>
         <select [(ngModel)]="filterPriority" (ngModelChange)="applyFilters()"
-          class="border border-gray-200 rounded-xl py-2 px-3 text-sm font-bold text-gray-600 bg-white focus:outline-none focus:ring-2 focus:ring-[#3b28cc]/20 focus:border-[#3b28cc]">
+          class="border border-gray-200 rounded-xl py-3 md:py-2 px-3 text-sm font-bold text-gray-600 bg-white focus:outline-none focus:ring-2 focus:ring-[#3b28cc]/20 focus:border-[#3b28cc] w-full md:w-auto">
           <option value="">Toutes priorités</option>
           <option value="HIGH">Haute</option>
           <option value="MEDIUM">Moyenne</option>
           <option value="LOW">Faible</option>
         </select>
-        <div class="ml-auto text-sm font-medium text-gray-500">{{ allTasks().length }} tâche(s)</div>
+        <div class="mt-2 md:mt-0 text-center md:ml-auto text-sm font-medium text-gray-500">{{ allTasks().length }} tâche(s)</div>
       </div>
 
       <!-- Loading -->
@@ -66,10 +66,10 @@ import { TaskService } from '../../services/task.service';
       </div>
 
       <!-- Kanban Board -->
-      <div *ngIf="!loading() && allTasks().length > 0" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div *ngIf="!loading() && allTasks().length > 0" class="flex lg:grid lg:grid-cols-3 gap-6 overflow-x-auto snap-x snap-mandatory pb-4">
 
         <!-- Column: À Faire -->
-        <div class="flex flex-col gap-3">
+        <div class="flex flex-col gap-3 min-w-[85vw] sm:min-w-[400px] lg:min-w-0 snap-center">
           <div class="flex items-center justify-between bg-white border border-gray-100 rounded-xl p-3 shadow-sm">
             <div class="flex items-center gap-2">
               <span class="w-2.5 h-2.5 rounded-full bg-gray-400"></span>
@@ -84,7 +84,7 @@ import { TaskService } from '../../services/task.service';
         </div>
 
         <!-- Column: En Cours -->
-        <div class="flex flex-col gap-3">
+        <div class="flex flex-col gap-3 min-w-[85vw] sm:min-w-[400px] lg:min-w-0 snap-center">
           <div class="flex items-center justify-between bg-amber-50 border border-amber-200 rounded-xl p-3 shadow-sm">
             <div class="flex items-center gap-2">
               <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
@@ -100,7 +100,7 @@ import { TaskService } from '../../services/task.service';
         </div>
 
         <!-- Column: Terminées -->
-        <div class="flex flex-col gap-3">
+        <div class="flex flex-col gap-3 min-w-[85vw] sm:min-w-[400px] lg:min-w-0 snap-center">
           <div class="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-xl p-3 shadow-sm">
             <div class="flex items-center gap-2">
               <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
@@ -135,7 +135,7 @@ import { TaskService } from '../../services/task.service';
               <span [class]="getPriorityClass(task.priority)">{{ getPriorityLabel(task.priority) }}</span>
             </div>
           </div>
-          <div class="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div class="flex flex-col sm:flex-row lg:flex-col gap-1 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity">
             <button *ngIf="task.status !== 'IN_PROGRESS' && task.status !== 'DONE'" (click)="markInProgress(task)"
               class="text-amber-600 hover:bg-amber-50 p-1 rounded transition-colors" title="Démarrer">
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/></svg>
@@ -163,18 +163,18 @@ import { TaskService } from '../../services/task.service';
             <div>
               <label class="block text-sm font-bold text-gray-700 mb-1">Titre *</label>
               <input type="text" [(ngModel)]="form.title" placeholder="Ex: Corriger le bug d'auth"
-                class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#3b28cc]/20 focus:border-[#3b28cc] transition-colors">
+                class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#3b28cc]/20 focus:border-[#3b28cc] transition-colors">
             </div>
             <div>
               <label class="block text-sm font-bold text-gray-700 mb-1">Description</label>
               <textarea [(ngModel)]="form.description" rows="3" placeholder="Détails optionnels..."
-                class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#3b28cc]/20 focus:border-[#3b28cc] transition-colors resize-none"></textarea>
+                class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#3b28cc]/20 focus:border-[#3b28cc] transition-colors resize-none"></textarea>
             </div>
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label class="block text-sm font-bold text-gray-700 mb-1">Priorité</label>
                 <select [(ngModel)]="form.priority"
-                  class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#3b28cc]/20 focus:border-[#3b28cc]">
+                  class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#3b28cc]/20 focus:border-[#3b28cc]">
                   <option value="HIGH">🔴 Haute</option>
                   <option value="MEDIUM">🟠 Moyenne</option>
                   <option value="LOW">🟢 Faible</option>
@@ -183,7 +183,7 @@ import { TaskService } from '../../services/task.service';
               <div>
                 <label class="block text-sm font-bold text-gray-700 mb-1">Catégorie</label>
                 <select [(ngModel)]="form.category"
-                  class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#3b28cc]/20 focus:border-[#3b28cc]">
+                  class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#3b28cc]/20 focus:border-[#3b28cc]">
                   <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
                 </select>
               </div>
@@ -191,7 +191,7 @@ import { TaskService } from '../../services/task.service';
             <div>
               <label class="block text-sm font-bold text-gray-700 mb-1">Date limite</label>
               <input type="date" [(ngModel)]="form.deadline"
-                class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#3b28cc]/20 focus:border-[#3b28cc] transition-colors">
+                class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#3b28cc]/20 focus:border-[#3b28cc] transition-colors">
             </div>
           </div>
 

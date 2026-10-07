@@ -14,35 +14,35 @@ import { AuthService } from '../../services/auth.service';
     <div class="space-y-6">
 
       <!-- Hero Banner -->
-      <div class="bg-gradient-to-r from-[#3b28cc] to-[#8b5cf6] rounded-3xl p-8 text-white shadow-xl relative overflow-hidden">
+      <div class="bg-gradient-to-r from-[#3b28cc] to-[#8b5cf6] rounded-3xl p-6 md:p-8 text-white shadow-xl relative overflow-hidden">
         <div class="absolute top-0 right-0 w-80 h-80 bg-white opacity-5 rounded-full filter blur-3xl -translate-y-1/2 translate-x-1/2"></div>
         <div class="absolute bottom-0 right-32 w-48 h-48 bg-purple-400 opacity-20 rounded-full filter blur-2xl translate-y-1/2"></div>
-        <div class="relative z-10 flex items-center justify-between">
-          <div class="flex-1">
+        <div class="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6 md:gap-0">
+          <div class="flex-1 w-full text-center md:text-left">
             <div class="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-lg text-sm font-semibold mb-4 border border-white/20">
               <span class="text-amber-300">⚡</span> Cascade Engine V3.4 • Alignement Stratégique
             </div>
             <h1 class="text-3xl font-extrabold mb-3">
               Ma Journée : Flux &amp; Clarté
             </h1>
-            <p class="text-indigo-100 max-w-xl font-medium mb-6">
+            <p class="text-indigo-100 max-w-xl font-medium mb-6 mx-auto md:mx-0">
               Vos actions d'aujourd'hui propulsent directement <strong class="text-white">{{ topGoals().length }} objectifs stratégiques</strong> majeurs.
             </p>
-            <div class="flex items-center gap-3 flex-wrap">
-              <span class="bg-emerald-400/20 text-emerald-200 border border-emerald-400/30 px-3 py-1.5 rounded-lg text-sm font-bold flex items-center gap-2">
+            <div class="flex flex-col sm:flex-row items-center gap-3 flex-wrap justify-center md:justify-start">
+              <span class="bg-emerald-400/20 text-emerald-200 border border-emerald-400/30 px-3 py-1.5 rounded-lg text-sm font-bold flex items-center gap-2 w-full sm:w-auto justify-center">
                 <span class="w-2 h-2 rounded-full bg-emerald-400"></span> {{ stats()?.done || 0 }} terminées
               </span>
-              <span class="bg-amber-400/20 text-amber-200 border border-amber-400/30 px-3 py-1.5 rounded-lg text-sm font-bold flex items-center gap-2">
+              <span class="bg-amber-400/20 text-amber-200 border border-amber-400/30 px-3 py-1.5 rounded-lg text-sm font-bold flex items-center gap-2 w-full sm:w-auto justify-center">
                 <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span> {{ stats()?.inProgress || 0 }} en cours
               </span>
-              <span class="bg-white/10 text-indigo-100 border border-white/20 px-3 py-1.5 rounded-lg text-sm font-bold flex items-center gap-2">
+              <span class="bg-white/10 text-indigo-100 border border-white/20 px-3 py-1.5 rounded-lg text-sm font-bold flex items-center gap-2 w-full sm:w-auto justify-center">
                 <span class="w-2 h-2 rounded-full bg-indigo-200"></span> {{ stats()?.todo || 0 }} restantes
               </span>
             </div>
           </div>
 
           <!-- Donut Progress -->
-          <div class="flex-shrink-0 flex flex-col items-center ml-8" *ngIf="stats()">
+          <div class="flex-shrink-0 flex flex-col items-center md:ml-8 w-full md:w-auto" *ngIf="stats()">
             <div class="relative w-32 h-32">
               <svg viewBox="0 0 100 100" class="transform -rotate-90 w-full h-full">
                 <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="12"/>
@@ -95,8 +95,8 @@ import { AuthService } from '../../services/auth.service';
                   <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
                 </div>
                 <div class="flex-1 min-w-0">
-                  <h3 class="font-bold text-gray-900 text-sm truncate">{{ task.title }}</h3>
-                  <div class="flex items-center gap-2 mt-1 text-[11px] font-semibold text-gray-500">
+                  <h3 class="font-bold text-gray-900 text-sm whitespace-normal">{{ task.title }}</h3>
+                  <div class="flex flex-wrap items-center gap-2 mt-1 text-[11px] font-semibold text-gray-500">
                     <span class="text-[#3b28cc]">{{ task.category }}</span>
                     <span *ngIf="task.deadline">· {{ task.deadline | date:'d MMM' }}</span>
                     <span [class]="task.priority === 'HIGH' ? 'text-red-500 bg-red-50 px-1.5 py-0.5 rounded border border-red-100' : 'text-amber-500 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-100'">
@@ -105,7 +105,7 @@ import { AuthService } from '../../services/auth.service';
                   </div>
                 </div>
               </div>
-              <span class="flex-shrink-0 bg-amber-50 text-amber-700 border border-amber-200 px-2.5 py-1 rounded-xl text-xs font-bold flex items-center gap-1.5 ml-3">
+              <span class="flex-shrink-0 bg-amber-50 text-amber-700 border border-amber-200 px-2.5 py-1 rounded-xl text-xs font-bold hidden sm:flex items-center gap-1.5 ml-3">
                 <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> Actif
               </span>
             </div>
@@ -117,8 +117,8 @@ import { AuthService } from '../../services/auth.service';
               <div class="flex items-start gap-3 flex-1 min-w-0">
                 <div class="w-5 h-5 rounded-full border-2 border-gray-300 mt-0.5 flex-shrink-0"></div>
                 <div class="flex-1 min-w-0">
-                  <h3 class="font-bold text-gray-900 text-sm truncate">{{ task.title }}</h3>
-                  <div class="flex items-center gap-2 mt-1 text-[11px] font-semibold text-gray-500">
+                  <h3 class="font-bold text-gray-900 text-sm whitespace-normal">{{ task.title }}</h3>
+                  <div class="flex flex-wrap items-center gap-2 mt-1 text-[11px] font-semibold text-gray-500">
                     <span class="text-[#3b28cc]">{{ task.category }}</span>
                     <span *ngIf="task.deadline">· {{ task.deadline | date:'d MMM' }}</span>
                     <span [class]="task.priority === 'HIGH' ? 'text-red-500 bg-red-50 px-1.5 py-0.5 rounded border border-red-100' : task.priority === 'MEDIUM' ? 'text-amber-500 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-100' : 'text-emerald-500 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100'">
@@ -127,7 +127,7 @@ import { AuthService } from '../../services/auth.service';
                   </div>
                 </div>
               </div>
-              <a routerLink="/focus" class="flex-shrink-0 bg-indigo-50 text-[#3b28cc] border border-indigo-100 px-2.5 py-1 rounded-xl text-xs font-bold flex items-center gap-1 ml-3 hover:bg-indigo-100 transition-colors">
+              <a routerLink="/focus" class="flex-shrink-0 bg-indigo-50 text-[#3b28cc] border border-indigo-100 px-2.5 py-1 rounded-xl text-xs font-bold hidden sm:flex items-center gap-1 ml-3 hover:bg-indigo-100 transition-colors">
                 <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/></svg> Focus
               </a>
             </div>

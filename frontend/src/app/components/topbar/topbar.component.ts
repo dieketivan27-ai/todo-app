@@ -6,17 +6,22 @@ import { AuthService } from '../../services/auth.service';
 import { TaskService } from '../../services/task.service';
 import { TaskCreate, CATEGORIES } from '../../models/task.model';
 import { NotificationService, Notification } from '../../services/notification.service';
+import { LayoutService } from '../../services/layout.service';
 
 @Component({
   selector: 'app-topbar',
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   template: `
-    <header class="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-6 sticky top-0 z-40 shadow-sm">
+    <header class="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-3 md:px-6 sticky top-0 z-40 shadow-sm gap-2 md:gap-4">
 
-      <!-- Left: Greeting + Date -->
-      <div class="flex items-center gap-4">
-        <div>
+      <!-- Left: Burger + Greeting + Date -->
+      <div class="flex items-center gap-2 md:gap-4">
+        <button (click)="layout.toggleSidebar()" class="md:hidden p-2 -ml-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors">
+          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+        <div class="hidden sm:block">
           <div class="flex items-center gap-2">
             <h2 class="text-base font-extrabold text-gray-900" *ngIf="auth.currentUser$ | async as user">Bonjour {{ user.name.split(' ')[0] }} 👋</h2>
             <span class="bg-emerald-50 text-emerald-600 border border-emerald-200 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
@@ -29,7 +34,7 @@ import { NotificationService, Notification } from '../../services/notification.s
       </div>
 
       <!-- Center: Search -->
-      <div class="flex-1 max-w-md px-6">
+      <div class="flex-1 max-w-md px-1 md:px-6">
         <div class="relative group">
           <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -40,18 +45,18 @@ import { NotificationService, Notification } from '../../services/notification.s
             class="block w-full pl-10 pr-12 py-2 border border-gray-200 rounded-xl leading-5 bg-gray-50 placeholder-gray-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#3b28cc]/20 focus:border-[#3b28cc] transition-all text-sm font-medium"
             placeholder="Rechercher une tâche...">
           <div class="absolute inset-y-0 right-0 pr-2 flex items-center">
-            <span class="text-[10px] font-bold text-gray-400 border border-gray-200 rounded px-1.5 py-0.5 bg-white">⌘K</span>
+            <span class="text-[10px] font-bold text-gray-400 border border-gray-200 rounded px-1.5 py-0.5 bg-white hidden sm:block">⌘K</span>
           </div>
         </div>
       </div>
 
       <!-- Right: Actions & User -->
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-2 md:gap-3">
         <!-- Nouvelle tâche button - opens modal -->
         <button (click)="showModal.set(true)"
-          class="bg-[#3b28cc] hover:bg-[#3222b0] text-white px-4 py-2 rounded-xl text-sm font-bold shadow-sm transition-colors flex items-center gap-2">
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-          Nouvelle tâche
+          class="bg-[#3b28cc] hover:bg-[#3222b0] text-white p-2 md:px-4 md:py-2 rounded-xl text-sm font-bold shadow-sm transition-colors flex items-center gap-2">
+          <svg class="w-5 h-5 md:w-4 md:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+          <span class="hidden md:inline">Nouvelle tâche</span>
         </button>
 
         <!-- Notifications bell -->
@@ -92,15 +97,15 @@ import { NotificationService, Notification } from '../../services/notification.s
 
         <!-- User chip + Dropdown -->
         <div class="relative user-menu-container" *ngIf="auth.currentUser$ | async as user">
-          <button (click)="toggleUserMenu()" class="flex items-center gap-2 bg-indigo-50/60 border border-indigo-100 rounded-xl p-1 pr-3 hover:bg-indigo-100/60 transition-colors">
+          <button (click)="toggleUserMenu()" class="flex items-center gap-2 bg-indigo-50/60 border border-indigo-100 rounded-xl p-1 md:pr-3 hover:bg-indigo-100/60 transition-colors">
             <div class="w-7 h-7 rounded-lg bg-[#3b28cc] flex items-center justify-center text-white font-extrabold text-xs shadow-sm">
               {{ user.name.charAt(0).toUpperCase() }}
             </div>
-            <div class="flex flex-col text-left">
+            <div class="hidden md:flex flex-col text-left">
               <span class="text-xs font-extrabold text-gray-900 leading-none">{{ user.name.split(' ')[0] }}</span>
               <span class="text-[10px] font-bold text-[#3b28cc] leading-none mt-0.5">Plan Pro</span>
             </div>
-            <svg class="w-3.5 h-3.5 text-gray-400 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+            <svg class="w-3.5 h-3.5 text-gray-400 ml-1 hidden md:block" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
           </button>
 
           <!-- User dropdown -->
@@ -160,18 +165,18 @@ import { NotificationService, Notification } from '../../services/notification.s
           <div>
             <label class="block text-sm font-bold text-gray-700 mb-1">Titre *</label>
             <input type="text" [(ngModel)]="form.title" placeholder="Ex: Corriger le bug d'authentification"
-              class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#3b28cc]/20 focus:border-[#3b28cc] transition-colors"
+              class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#3b28cc]/20 focus:border-[#3b28cc] transition-colors"
               autofocus>
           </div>
           <div>
             <label class="block text-sm font-bold text-gray-700 mb-1">Description</label>
             <textarea [(ngModel)]="form.description" rows="2" placeholder="Détails optionnels..."
-              class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#3b28cc]/20 focus:border-[#3b28cc] resize-none transition-colors"></textarea>
+              class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#3b28cc]/20 focus:border-[#3b28cc] resize-none transition-colors"></textarea>
           </div>
-          <div class="grid grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-bold text-gray-700 mb-1">Priorité</label>
-              <select [(ngModel)]="form.priority" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#3b28cc]/20 focus:border-[#3b28cc]">
+              <select [(ngModel)]="form.priority" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#3b28cc]/20 focus:border-[#3b28cc]">
                 <option value="HIGH">🔴 Haute</option>
                 <option value="MEDIUM">🟠 Moyenne</option>
                 <option value="LOW">🟢 Faible</option>
@@ -179,14 +184,14 @@ import { NotificationService, Notification } from '../../services/notification.s
             </div>
             <div>
               <label class="block text-sm font-bold text-gray-700 mb-1">Catégorie</label>
-              <select [(ngModel)]="form.category" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#3b28cc]/20 focus:border-[#3b28cc]">
+              <select [(ngModel)]="form.category" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#3b28cc]/20 focus:border-[#3b28cc]">
                 <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
               </select>
             </div>
           </div>
           <div>
             <label class="block text-sm font-bold text-gray-700 mb-1">Date limite</label>
-            <input type="date" [(ngModel)]="form.deadline" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#3b28cc]/20 focus:border-[#3b28cc]">
+            <input type="date" [(ngModel)]="form.deadline" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#3b28cc]/20 focus:border-[#3b28cc]">
           </div>
         </div>
 
@@ -206,6 +211,7 @@ import { NotificationService, Notification } from '../../services/notification.s
 })
 export class TopbarComponent implements OnInit {
   auth = inject(AuthService);
+  layout = inject(LayoutService);
   private taskService = inject(TaskService);
   private router = inject(Router);
   private notifService = inject(NotificationService);

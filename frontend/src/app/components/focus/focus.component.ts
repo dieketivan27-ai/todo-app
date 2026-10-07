@@ -21,7 +21,7 @@ import { AuthService } from '../../services/auth.service';
         </div>
         <h2 class="text-2xl font-extrabold text-gray-900 mb-2">« Concentre-toi sur l'essentiel aujourd'hui. »</h2>
         <p class="text-gray-500 text-sm font-medium italic mb-5">« L'alignement stratégique garantit que chaque minute passée te rapproche directement de la vision annuelle. »</p>
-        <div class="flex items-center gap-6">
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-6">
           <div class="bg-indigo-50 border border-indigo-100 rounded-xl px-5 py-3 text-center">
             <div class="text-xl font-extrabold text-[#3b28cc]">{{ totalFocusTime() }}h</div>
             <div class="text-[10px] font-bold text-gray-500 uppercase tracking-wide mt-0.5">Temps Focus Prévu</div>
@@ -39,13 +39,13 @@ import { AuthService } from '../../services/auth.service';
           <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd"/></svg>
           Objectif Principal du Jour (North Star)
         </div>
-        <div class="flex items-center justify-between gap-6">
-          <div class="flex-1 min-w-0">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6">
+          <div class="flex-1 w-full min-w-0">
             <h3 class="text-xl font-extrabold text-gray-900 mb-1 truncate">{{ northStar()!.title }}</h3>
             <p class="text-xs text-gray-500 font-medium">Rattaché à l'Horizon {{ northStar()!.year }}</p>
           </div>
-          <div class="flex-shrink-0 flex items-center gap-4">
-            <div class="text-right">
+          <div class="flex-shrink-0 flex items-center w-full sm:w-auto justify-between sm:justify-start gap-4">
+            <div class="text-left sm:text-right">
               <div class="text-2xl font-extrabold text-[#3b28cc]">{{ northStar()!.stats.annualPct }}%</div>
               <div class="text-[10px] font-bold text-gray-500 uppercase">atteint</div>
             </div>
@@ -94,7 +94,7 @@ import { AuthService } from '../../services/auth.service';
         </div>
 
         <!-- Task time blocks -->
-        <div *ngIf="allTasks().length > 0" class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+        <div *ngIf="allTasks().length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
           <div *ngFor="let task of displayTasks()" class="bg-white border rounded-xl p-3 shadow-sm"
             [class]="task.status === 'DONE' ? 'border-emerald-200 bg-emerald-50/50' : task.status === 'IN_PROGRESS' ? 'border-amber-200 bg-amber-50/30' : 'border-gray-100'">
             <div class="flex items-center justify-between mb-2">
@@ -110,20 +110,20 @@ import { AuthService } from '../../services/auth.service';
 
         <!-- Progress bar -->
         <div *ngIf="allTasks().length > 0" class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
-          <div class="flex items-center justify-between mb-3">
-            <div class="flex items-center gap-2">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-3">
+            <div class="flex items-center gap-3">
               <span class="text-2xl font-extrabold text-[#3b28cc]">{{ progressPercent() }}%</span>
               <div>
                 <p class="text-sm font-bold text-gray-900">Progression de la journée : {{ doneTasks().length }}/{{ allTasks().length }} tâches</p>
-                <p class="text-xs text-gray-500 font-medium">L'alignement stratégique est optimal pour la clôture.</p>
+                <p class="text-xs text-gray-500 font-medium hidden sm:block">L'alignement stratégique est optimal pour la clôture.</p>
               </div>
             </div>
-            <div class="flex items-center gap-3">
-              <button class="flex items-center gap-1.5 bg-gray-50 border border-gray-200 text-gray-700 px-3 py-2 rounded-xl text-xs font-bold hover:bg-gray-100 transition-colors">
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+              <button class="flex justify-center items-center gap-1.5 bg-gray-50 border border-gray-200 text-gray-700 px-3 py-2 rounded-xl text-xs font-bold hover:bg-gray-100 transition-colors w-full sm:w-auto">
                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
                 Ajuster créneaux
               </button>
-              <a routerLink="/tasks" class="flex items-center gap-1.5 bg-[#3b28cc] text-white px-3 py-2 rounded-xl text-xs font-bold hover:bg-[#3222b0] transition-colors">
+              <a routerLink="/tasks" class="flex justify-center items-center gap-1.5 bg-[#3b28cc] text-white px-3 py-2 rounded-xl text-xs font-bold hover:bg-[#3222b0] transition-colors w-full sm:w-auto">
                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                 Clôturer la journée &amp; faire le bilan
               </a>

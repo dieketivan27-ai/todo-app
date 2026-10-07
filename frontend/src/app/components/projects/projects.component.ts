@@ -30,12 +30,12 @@ import { TaskCreate, CATEGORIES, Goal } from '../../models/task.model';
         </div>
         <h3 class="text-xl font-bold text-gray-900 mb-2">Aucun projet pour l'instant</h3>
         <p class="text-gray-500 font-medium mb-6 max-w-sm">Les projets regroupent vos objectifs et tâches. Créez votre premier objectif dans la section <strong>Objectifs</strong> pour commencer.</p>
-        <div class="flex gap-3">
-          <a routerLink="/goals" class="bg-[#3b28cc] hover:bg-[#3222b0] text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-colors flex items-center gap-2">
+        <div class="flex flex-col sm:flex-row gap-3">
+          <a routerLink="/goals" class="bg-[#3b28cc] hover:bg-[#3222b0] text-white px-5 py-3 sm:py-2.5 rounded-xl text-sm font-bold shadow-sm transition-colors flex justify-center items-center gap-2">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
             Créer un objectif
           </a>
-          <a routerLink="/tasks" class="bg-white border border-gray-200 text-gray-700 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-gray-50 transition-colors flex items-center gap-2">
+          <a routerLink="/tasks" class="bg-white border border-gray-200 text-gray-700 px-5 py-3 sm:py-2.5 rounded-xl text-sm font-bold hover:bg-gray-50 transition-colors flex justify-center items-center gap-2">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
             Ajouter des tâches
           </a>
@@ -44,8 +44,8 @@ import { TaskCreate, CATEGORIES, Goal } from '../../models/task.model';
 
       <!-- Nouvelle tâche rapide (always visible) -->
       <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm">
-        <div class="flex items-center gap-3 mb-5">
-          <div class="w-9 h-9 bg-indigo-50 rounded-xl flex items-center justify-center">
+        <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-5">
+          <div class="w-9 h-9 bg-indigo-50 rounded-xl flex items-center justify-center flex-shrink-0">
             <svg class="w-5 h-5 text-[#3b28cc]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
           </div>
           <div>
@@ -59,32 +59,32 @@ import { TaskCreate, CATEGORIES, Goal } from '../../models/task.model';
             <div class="lg:col-span-2">
               <label class="block text-xs font-bold text-gray-700 mb-1">Titre de la tâche *</label>
               <input type="text" [(ngModel)]="quickTask.title" placeholder="Ex. Corriger les routes de rafraîchissement des tokens"
-                class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#3b28cc]/20 focus:border-[#3b28cc] transition-colors">
+                class="w-full px-4 py-3 sm:py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#3b28cc]/20 focus:border-[#3b28cc] transition-colors">
             </div>
             <div>
               <label class="block text-xs font-bold text-gray-700 mb-1">Catégorie</label>
               <select [(ngModel)]="quickTask.category"
-                class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#3b28cc]/20 focus:border-[#3b28cc]">
+                class="w-full px-4 py-3 sm:py-2.5 border border-gray-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#3b28cc]/20 focus:border-[#3b28cc]">
                 <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
               </select>
             </div>
           </div>
 
-          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <label class="block text-xs font-bold text-gray-700 mb-1">Date d'exécution</label>
               <input type="date" [(ngModel)]="quickTask.deadline"
-                class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#3b28cc]/20 focus:border-[#3b28cc]">
+                class="w-full px-4 py-3 sm:py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#3b28cc]/20 focus:border-[#3b28cc]">
             </div>
             <div>
               <label class="block text-xs font-bold text-gray-700 mb-1">Heure de blocage</label>
               <input type="time" [(ngModel)]="quickTask.start_time"
-                class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#3b28cc]/20 focus:border-[#3b28cc]">
+                class="w-full px-4 py-3 sm:py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#3b28cc]/20 focus:border-[#3b28cc]">
             </div>
             <div>
               <label class="block text-xs font-bold text-gray-700 mb-1">Durée estimée</label>
               <select [(ngModel)]="quickTask.end_time"
-                class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#3b28cc]/20 focus:border-[#3b28cc]">
+                class="w-full px-4 py-3 sm:py-2.5 border border-gray-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#3b28cc]/20 focus:border-[#3b28cc]">
                 <option value="15 min">15 min</option>
                 <option value="30 min">30 min</option>
                 <option value="45 min" selected>45 min</option>
@@ -97,7 +97,7 @@ import { TaskCreate, CATEGORIES, Goal } from '../../models/task.model';
             <div>
               <label class="block text-xs font-bold text-gray-700 mb-1">Priorité</label>
               <select [(ngModel)]="quickTask.priority"
-                class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#3b28cc]/20 focus:border-[#3b28cc]">
+                class="w-full px-4 py-3 sm:py-2.5 border border-gray-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#3b28cc]/20 focus:border-[#3b28cc]">
                 <option value="HIGH">Haute</option>
                 <option value="MEDIUM">Moyenne</option>
                 <option value="LOW">Faible</option>
@@ -109,10 +109,10 @@ import { TaskCreate, CATEGORIES, Goal } from '../../models/task.model';
         <div *ngIf="formError()" class="mt-3 text-sm text-red-600 bg-red-50 px-4 py-2.5 rounded-xl border border-red-100">{{ formError() }}</div>
         <div *ngIf="formSuccess()" class="mt-3 text-sm text-emerald-600 bg-emerald-50 px-4 py-2.5 rounded-xl border border-emerald-100">✓ Tâche créée et planifiée avec succès !</div>
 
-        <div class="flex items-center justify-end gap-3 mt-5 pt-5 border-t border-gray-100">
-          <button (click)="resetForm()" class="px-4 py-2.5 text-sm font-bold text-gray-600 hover:text-gray-900 transition-colors">Réinitialiser</button>
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 mt-5 pt-5 border-t border-gray-100">
+          <button (click)="resetForm()" class="px-4 py-3 sm:py-2.5 text-sm font-bold text-gray-600 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 sm:bg-transparent rounded-xl transition-colors">Réinitialiser</button>
           <button (click)="createQuickTask()" [disabled]="saving()"
-            class="bg-[#3b28cc] hover:bg-[#3222b0] text-white px-6 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-colors disabled:opacity-60 flex items-center gap-2">
+            class="bg-[#3b28cc] hover:bg-[#3222b0] text-white px-6 py-3 sm:py-2.5 rounded-xl text-sm font-bold shadow-sm transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
             <svg *ngIf="saving()" class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
             Créer et planifier
           </button>
