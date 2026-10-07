@@ -1,0 +1,26 @@
+# Node modules
+node_modules/
+*/node_modules/
+
+# Environment variables
+.env
+*.env
+.env.local
+.env.*.local
+
+# Build output
+dist/
+build/
+.angular/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Uploads temp
+backend/uploads/
