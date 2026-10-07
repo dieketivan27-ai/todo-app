@@ -18,9 +18,9 @@ import { TaskService } from '../../services/task.service';
           <h1 class="text-2xl font-extrabold text-gray-900 mb-1">Gestion des Tâches</h1>
           <p class="text-sm text-gray-500 font-medium">Tableau Kanban de vos tâches en cours.</p>
         </div>
-        <button (click)="openModal()" class="bg-[#3b28cc] hover:bg-[#3222b0] text-white px-4 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-colors flex items-center gap-2">
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-          Nouvelle tâche
+        <button (click)="openModal()" class="bg-[#3b28cc] hover:bg-[#3222b0] text-white p-2.5 sm:px-4 sm:py-2.5 rounded-xl text-sm font-bold shadow-sm transition-colors flex items-center gap-2">
+          <svg class="w-5 h-5 sm:w-4 sm:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+          <span class="hidden sm:inline">Nouvelle tâche</span>
         </button>
       </div>
 

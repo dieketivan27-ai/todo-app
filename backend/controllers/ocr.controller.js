@@ -1,7 +1,7 @@
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { GoogleGenAI } = require('@google/genai');
 const fs = require('fs');
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 const PROMPT = `Tu es un assistant expert en extraction de données structurées depuis des documents RH et de planification.
 
@@ -32,6 +32,8 @@ Règles importantes:
 - Extrait TOUT le texte visible même si partiellement illisible
 - Si tu ne peux pas lire l'image ou qu'elle ne contient pas d'objectifs, retourne: {"error": "Aucun objectif trouvé dans ce document"}`;
 
+const MODEL_NAME = 'gemini-2.0-flash';
+
 const analyzeDocument = async (req, res) => {
   try {
     if (!req.file) {
@@ -50,21 +52,25 @@ const analyzeDocument = async (req, res) => {
     const base64Image = imageData.toString('base64');
     const mimeType = req.file.mimetype;
 
-    // Call Gemini Vision
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-
-    const result = await model.generateContent([
-      PROMPT,
-      {
-        inlineData: {
-          data: base64Image,
-          mimeType: mimeType
+    // Call Gemini Vision with new @google/genai SDK
+    const response = await genAI.models.generateContent({
+      model: MODEL_NAME,
+      contents: [
+        {
+          parts: [
+            { text: PROMPT },
+            {
+              inlineData: {
+                data: base64Image,
+                mimeType: mimeType
+              }
+            }
+          ]
         }
-      }
-    ]);
+      ]
+    });
 
-    const response = await result.response;
-    const text = response.text().trim();
+    const text = response.text.trim();
 
     // Clean potential markdown code blocks
     const cleaned = text
@@ -80,7 +86,7 @@ const analyzeDocument = async (req, res) => {
       console.error('JSON parse error:', parseErr, '\nRaw text:', text);
       return res.status(422).json({
         success: false,
-        message: 'Impossible de parser la réponse IA. Essayez avec une image plus nette.',
+        message: 'Impossible de parser la réponse IA. Essayez avec une image plus nette ou un document mieux structuré.',
         rawResponse: text
       });
     }
@@ -90,7 +96,9 @@ const analyzeDocument = async (req, res) => {
     }
 
     // Clean up temp file
-    fs.unlinkSync(req.file.path);
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
 
     return res.json({
       success: true,
@@ -102,19 +110,45 @@ const analyzeDocument = async (req, res) => {
 
     // Clean up temp file if exists
     if (req.file && fs.existsSync(req.file.path)) {
-      fs.unlinkSync(req.file.path);
+      try { fs.unlinkSync(req.file.path); } catch (_) {}
     }
 
-    if (err.message?.includes('API_KEY') || err.message?.includes('API key')) {
+    // Clé API invalide
+    if (err.message?.includes('API_KEY') || err.message?.includes('API key') || err.status === 401 || err.status === 403) {
       return res.status(401).json({
         success: false,
-        message: 'Clé API Gemini invalide. Vérifiez GEMINI_API_KEY dans .env'
+        message: 'Clé API Gemini invalide ou expirée. Vérifiez GEMINI_API_KEY dans le fichier .env du backend.'
       });
     }
 
+    // Modèle introuvable / quota dépassé
+    if (err.status === 404 || err.message?.includes('not found') || err.message?.includes('not supported')) {
+      return res.status(503).json({
+        success: false,
+        message: `Le modèle IA (${MODEL_NAME}) est temporairement indisponible. Réessayez dans quelques instants.`
+      });
+    }
+
+    // Quota / limite de taux
+    if (err.status === 429 || err.message?.includes('quota') || err.message?.includes('RESOURCE_EXHAUSTED')) {
+      return res.status(429).json({
+        success: false,
+        message: 'Limite de requêtes Gemini atteinte. Attendez quelques secondes puis réessayez.'
+      });
+    }
+
+    // Fichier image non supporté
+    if (err.message?.includes('image') || err.message?.includes('INVALID_ARGUMENT')) {
+      return res.status(400).json({
+        success: false,
+        message: 'Format d\'image non supporté. Utilisez JPG, PNG ou WEBP, et assurez-vous que le fichier n\'est pas corrompu.'
+      });
+    }
+
+    // Erreur générique
     return res.status(500).json({
       success: false,
-      message: 'Erreur lors de l\'analyse du document: ' + err.message
+      message: 'Une erreur est survenue lors de l\'analyse du document. Vérifiez votre connexion et réessayez.'
     });
   }
 };
