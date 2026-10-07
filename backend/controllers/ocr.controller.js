@@ -32,7 +32,7 @@ Règles importantes:
 - Extrait TOUT le texte visible même si partiellement illisible
 - Si tu ne peux pas lire l'image ou qu'elle ne contient pas d'objectifs, retourne: {"error": "Aucun objectif trouvé dans ce document"}`;
 
-const MODEL_NAME = 'gemini-2.0-flash';
+const MODEL_NAME = 'gemini-2.5-flash';
 
 const analyzeDocument = async (req, res) => {
   try {
@@ -43,7 +43,7 @@ const analyzeDocument = async (req, res) => {
     if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === 'VOTRE_CLE_GEMINI_ICI') {
       return res.status(503).json({
         success: false,
-        message: 'Clé API Gemini non configurée. Ajoutez GEMINI_API_KEY dans le fichier .env du backend.'
+        message: 'Configuration manquante : Clé API Gemini non configurée sur le serveur.'
       });
     }
 
@@ -86,7 +86,7 @@ const analyzeDocument = async (req, res) => {
       console.error('JSON parse error:', parseErr, '\nRaw text:', text);
       return res.status(422).json({
         success: false,
-        message: 'Impossible de parser la réponse IA. Essayez avec une image plus nette ou un document mieux structuré.',
+        message: 'L\'IA n\'a pas pu extraire des objectifs valides depuis ce document. Veuillez essayer avec une image plus claire.',
         rawResponse: text
       });
     }
@@ -113,42 +113,32 @@ const analyzeDocument = async (req, res) => {
       try { fs.unlinkSync(req.file.path); } catch (_) {}
     }
 
-    // Clé API invalide
-    if (err.message?.includes('API_KEY') || err.message?.includes('API key') || err.status === 401 || err.status === 403) {
+    const errorMsg = (err.message || '').toLowerCase();
+
+    if (errorMsg.includes('api_key') || errorMsg.includes('api key') || err.status === 401 || err.status === 403) {
       return res.status(401).json({
         success: false,
-        message: 'Clé API Gemini invalide ou expirée. Vérifiez GEMINI_API_KEY dans le fichier .env du backend.'
+        message: 'L\'accès au service IA est refusé (clé API invalide ou expirée).'
       });
     }
 
-    // Modèle introuvable / quota dépassé
-    if (err.status === 404 || err.message?.includes('not found') || err.message?.includes('not supported')) {
+    if (err.status === 404 || errorMsg.includes('not found') || errorMsg.includes('not supported') || errorMsg.includes('invalid_argument')) {
       return res.status(503).json({
         success: false,
-        message: `Le modèle IA (${MODEL_NAME}) est temporairement indisponible. Réessayez dans quelques instants.`
+        message: `L'analyse a échoué car le modèle IA utilisé est introuvable ou incompatible. Veuillez contacter le support.`
       });
     }
 
-    // Quota / limite de taux
-    if (err.status === 429 || err.message?.includes('quota') || err.message?.includes('RESOURCE_EXHAUSTED')) {
+    if (err.status === 429 || errorMsg.includes('quota') || errorMsg.includes('exhausted') || errorMsg.includes('rate limit')) {
       return res.status(429).json({
         success: false,
-        message: 'Limite de requêtes Gemini atteinte. Attendez quelques secondes puis réessayez.'
+        message: 'Le service IA est actuellement surchargé. Veuillez patienter quelques instants avant de réessayer.'
       });
     }
 
-    // Fichier image non supporté
-    if (err.message?.includes('image') || err.message?.includes('INVALID_ARGUMENT')) {
-      return res.status(400).json({
-        success: false,
-        message: 'Format d\'image non supporté. Utilisez JPG, PNG ou WEBP, et assurez-vous que le fichier n\'est pas corrompu.'
-      });
-    }
-
-    // Erreur générique
     return res.status(500).json({
       success: false,
-      message: 'Une erreur est survenue lors de l\'analyse du document. Vérifiez votre connexion et réessayez.'
+      message: 'Une erreur de communication avec l\'IA est survenue. Veuillez vérifier votre connexion et réessayer.'
     });
   }
 };
