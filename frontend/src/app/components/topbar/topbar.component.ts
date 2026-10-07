@@ -12,7 +12,6 @@ import { LayoutService } from '../../services/layout.service';
   selector: 'app-topbar',
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule],
-  imports: [CommonModule, FormsModule, RouterModule],
   template: `
     <header class="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-3 md:px-6 sticky top-0 z-40 shadow-sm gap-2 md:gap-4">
 
