@@ -53,8 +53,9 @@
       <!-- Échéance et Horaires -->
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div>
-          <label class="form-label">Date</label>
+          <label class="form-label">Date limite</label>
           <input type="date" [(ngModel)]="form.deadline" name="deadline" class="form-input">
+          <p class="text-[10px] text-gray-400 mt-1">Apparaît chaque jour dans le planning jusqu'à complétion.</p>
         </div>
         <div>
           <label class="form-label">Heure de début</label>
@@ -65,6 +66,12 @@
           <input type="time" [(ngModel)]="form.end_time" name="end_time" class="form-input">
         </div>
       </div>
+
+      <app-task-subtasks *ngIf="isEditing && task"
+        [taskId]="task.id"
+        [parentStatus]="task.status"
+        [initialSubtasks]="task.subtasks || null"
+        (completeParent)="onCompleteParent()" />
 
       <!-- Actions -->
       <div class="flex justify-end gap-3 pt-2">

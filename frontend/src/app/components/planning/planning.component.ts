@@ -15,7 +15,7 @@ import { TaskService } from '../../services/task.service';
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 class="text-2xl font-extrabold text-gray-900 mb-1">Planning &amp; Time-blocking</h1>
-          <p class="text-sm text-gray-500 font-medium">Tâches planifiées + variables d'objectifs réparties automatiquement chaque semaine.</p>
+          <p class="text-sm text-gray-500 font-medium">Tâches avec échéance affichées chaque jour jusqu'à complétion + variables d'objectifs.</p>
         </div>
         <div class="flex items-center gap-2 flex-wrap">
           <button (click)="goToToday()" *ngIf="weekOffset() !== 0" class="text-sm font-bold text-[#3b28cc] hover:underline transition-all">
@@ -91,7 +91,15 @@ import { TaskService } from '../../services/task.service';
                   [title]="'Objectif : ' + (task.goal_title || '—')">
                   Objectif • V{{ task.action_index || '?' }}
                 </span>
-                <span *ngIf="!task.is_action_variable" class="text-[10px] font-bold text-gray-400 hidden sm:inline">• DEEP WORK</span>
+                <span *ngIf="task.is_overdue && task.status !== 'DONE'"
+                  class="text-[10px] font-bold text-red-700 bg-red-100 px-1.5 py-0.5 rounded">
+                  En retard
+                </span>
+                <span *ngIf="task.task_deadline && !task.is_action_variable && task.status !== 'DONE'"
+                  class="text-[10px] font-bold text-gray-500 hidden sm:inline">
+                  limite {{ task.task_deadline }}
+                </span>
+                <span *ngIf="!task.is_action_variable && !task.is_overdue" class="text-[10px] font-bold text-gray-400 hidden sm:inline">• DEEP WORK</span>
               </div>
               <p *ngIf="task.is_action_variable && task.goal_title" class="text-[10px] text-violet-600 mt-1 truncate">
                 {{ task.goal_title }}
@@ -99,6 +107,13 @@ import { TaskService } from '../../services/task.service';
             </div>
 
             <div class="flex flex-col sm:flex-row items-end sm:items-center gap-2 flex-shrink-0">
+              <button *ngIf="!task.is_action_variable && task.status !== 'DONE'"
+                type="button"
+                (click)="markActionDone(task)"
+                [disabled]="completingId() === task.id"
+                class="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-1 rounded-lg hover:bg-emerald-100 disabled:opacity-50">
+                Terminer
+              </button>
               <button *ngIf="task.is_action_variable && task.status !== 'DONE'"
                 type="button"
                 (click)="markActionDone(task)"
@@ -248,13 +263,17 @@ export class PlanningComponent implements OnInit {
 
   taskRowClasses(task: PlanningSlot): Record<string, boolean> {
     const action = !!task.is_action_variable;
+    const overdue = !!task.is_overdue && task.status !== 'DONE';
+    const done = task.status === 'DONE' || !!task.is_completed_occurrence;
     return {
-      'border-violet-200': action,
-      'bg-violet-50/40': action,
-      'border-emerald-200': !action && task.status === 'DONE',
-      'bg-emerald-50/30': !action && task.status === 'DONE',
-      'border-amber-200': !action && task.status === 'IN_PROGRESS',
-      'border-gray-100': !action && (task.status === 'TODO' || task.status === 'LATE')
+      'border-violet-200': action && !overdue,
+      'bg-violet-50/40': action && !overdue,
+      'border-red-300': overdue,
+      'bg-red-50/50': overdue,
+      'border-emerald-200': !action && done && !overdue,
+      'bg-emerald-50/30': !action && done && !overdue,
+      'border-amber-200': !action && !done && !overdue && task.status === 'IN_PROGRESS',
+      'border-gray-100': !action && !done && !overdue && (task.status === 'TODO' || task.status === 'LATE')
     };
   }
 

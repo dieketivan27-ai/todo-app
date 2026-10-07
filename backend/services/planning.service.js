@@ -53,10 +53,6 @@ function getCandidateWeekdayIndices(weekMonday, referenceDate) {
   return remaining.length > 0 ? remaining : [0, 1, 2, 3, 4];
 }
 
-/**
- * Répartition automatique : une occurrence par semaine, jour avec la charge la plus faible
- * parmi Lun–Ven (ou jours restants si semaine courante).
- */
 function computeAutoDayIndex(task, sortedTasks, weekMonday, referenceDate, loadByDay) {
   const candidates = getCandidateWeekdayIndices(weekMonday, referenceDate);
   const taskPosition = sortedTasks.findIndex(t => t.id === task.id);
@@ -104,8 +100,9 @@ function buildWeeklyAssignments(sortedActiveTasks, weekMonday, referenceDate) {
   return datesByTaskId;
 }
 
-function taskToSlot(task, goalMap, occurrenceDate, generated) {
+function taskToSlot(task, goalMap, occurrenceDate, generated, extra = {}) {
   const goal = task.goal_id ? goalMap[task.goal_id] : null;
+  const taskDeadline = extra.task_deadline ?? task.deadline;
   return {
     id: task.id,
     title: task.title,
@@ -114,6 +111,10 @@ function taskToSlot(task, goalMap, occurrenceDate, generated) {
     status: task.status,
     category: task.category,
     deadline: occurrenceDate,
+    occurrence_date: occurrenceDate,
+    task_deadline: taskDeadline,
+    is_overdue: !!extra.is_overdue,
+    is_completed_occurrence: !!extra.is_completed_occurrence,
     start_time: task.start_time,
     end_time: task.end_time,
     goal_id: task.goal_id,
@@ -126,6 +127,39 @@ function taskToSlot(task, goalMap, occurrenceDate, generated) {
   };
 }
 
+/** Tâche ponctuelle : une occurrence par jour entre création et échéance ; après échéance, tous les jours en retard. */
+function expandDeadlineTaskSlots(task, goalMap, weekMonday) {
+  const slots = [];
+  if (!task.deadline) return slots;
+
+  const created = toDateOnly(new Date(task.created_at));
+  const due = task.deadline;
+  const weekDays = getWeekDayDates(weekMonday).map(d => toDateOnly(d));
+
+  if (task.status === 'DONE') {
+    if (task.completed_at) {
+      const doneDay = toDateOnly(new Date(task.completed_at));
+      if (weekDays.includes(doneDay)) {
+        slots.push(taskToSlot(task, goalMap, doneDay, false, {
+          task_deadline: due,
+          is_completed_occurrence: true
+        }));
+      }
+    }
+    return slots;
+  }
+
+  for (const day of weekDays) {
+    if (day < created) continue;
+    const isOverdue = day > due;
+    slots.push(taskToSlot(task, goalMap, day, false, {
+      task_deadline: due,
+      is_overdue: isOverdue
+    }));
+  }
+  return slots;
+}
+
 async function getWeekPlanning(userId, dateInput) {
   const ref = dateInput ? parseDateOnly(dateInput) : new Date();
   ref.setHours(0, 0, 0, 0);
@@ -136,17 +170,21 @@ async function getWeekPlanning(userId, dateInput) {
   const weekNum = getISOWeek(ref);
   const year = ref.getFullYear();
 
-  const [onceTasks, activeActionTasks, goals] = await Promise.all([
+  const [deadlineTasks, activeActionTasks, goals] = await Promise.all([
     Task.findAll({
       where: {
         user_id: userId,
         freq_type: { [Op.ne]: 'weekly_until_done' },
-        deadline: {
-          [Op.between]: [toDateOnly(weekMonday), toDateOnly(weekSunday)]
-        },
-        status: { [Op.notIn]: ['DONE'] }
+        deadline: { [Op.ne]: null },
+        [Op.or]: [
+          { status: { [Op.notIn]: ['DONE'] } },
+          {
+            status: 'DONE',
+            completed_at: { [Op.between]: [weekMonday, weekSunday] }
+          }
+        ]
       },
-      order: [['deadline', 'ASC'], ['start_time', 'ASC']]
+      order: [['deadline', 'ASC'], ['start_time', 'ASC'], ['id', 'ASC']]
     }),
     Task.findAll({
       where: {
@@ -161,13 +199,12 @@ async function getWeekPlanning(userId, dateInput) {
   ]);
 
   const goalMap = Object.fromEntries(goals.map(g => [g.id, g.toJSON()]));
-  const sortedActive = [...activeActionTasks];
-  const assignments = buildWeeklyAssignments(sortedActive, weekMonday, ref);
+  const assignments = buildWeeklyAssignments([...activeActionTasks], weekMonday, ref);
 
   const slots = [];
 
-  for (const task of onceTasks) {
-    slots.push(taskToSlot(task, goalMap, task.deadline, false));
+  for (const task of deadlineTasks) {
+    slots.push(...expandDeadlineTaskSlots(task, goalMap, weekMonday));
   }
 
   for (const task of activeActionTasks) {

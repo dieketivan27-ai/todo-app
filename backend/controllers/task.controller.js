@@ -1,5 +1,23 @@
 const { Op } = require('sequelize');
 const Task = require('../models/task.model');
+const SubTask = require('../models/subtask.model');
+
+const subtaskInclude = {
+  model: SubTask,
+  as: 'subtasks',
+  separate: true,
+  order: [['ordre', 'ASC'], ['id', 'ASC']]
+};
+
+function taskWithSubtasksJson(task) {
+  const json = task.toJSON ? task.toJSON() : task;
+  json.subtasks = json.subtasks || [];
+  return json;
+}
+
+async function findOwnedTask(taskId, userId) {
+  return Task.findOne({ where: { id: taskId, user_id: userId } });
+}
 
 // GET /api/tasks
 const getAllTasks = async (req, res) => {
@@ -18,10 +36,15 @@ const getAllTasks = async (req, res) => {
 
     const tasks = await Task.findAll({
       where,
+      include: [subtaskInclude],
       order: [[sortBy, order.toUpperCase()]]
     });
 
-    res.json({ success: true, data: tasks, count: tasks.length });
+    res.json({
+      success: true,
+      data: tasks.map(taskWithSubtasksJson),
+      count: tasks.length
+    });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -30,9 +53,12 @@ const getAllTasks = async (req, res) => {
 // GET /api/tasks/:id
 const getTaskById = async (req, res) => {
   try {
-    const task = await Task.findOne({ where: { id: req.params.id, user_id: req.user.id } });
+    const task = await Task.findOne({
+      where: { id: req.params.id, user_id: req.user.id },
+      include: [subtaskInclude]
+    });
     if (!task) return res.status(404).json({ success: false, message: 'Tâche introuvable' });
-    res.json({ success: true, data: task });
+    res.json({ success: true, data: taskWithSubtasksJson(task) });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -44,8 +70,17 @@ const createTask = async (req, res) => {
     const { title, description, priority, category, deadline, start_time, end_time } = req.body;
     if (!title) return res.status(400).json({ success: false, message: 'Le titre est obligatoire' });
 
-    const task = await Task.create({ title, description, priority, category, deadline, start_time, end_time, user_id: req.user.id });
-    res.status(201).json({ success: true, data: task, message: 'Tâche créée avec succès' });
+    const task = await Task.create({
+      title,
+      description,
+      priority,
+      category,
+      deadline,
+      start_time,
+      end_time,
+      user_id: req.user.id
+    });
+    res.status(201).json({ success: true, data: { ...task.toJSON(), subtasks: [] }, message: 'Tâche créée avec succès' });
   } catch (err) {
     res.status(400).json({ success: false, message: err.message });
   }
@@ -54,12 +89,13 @@ const createTask = async (req, res) => {
 // PUT /api/tasks/:id
 const updateTask = async (req, res) => {
   try {
-    const task = await Task.findOne({ where: { id: req.params.id, user_id: req.user.id } });
+    const task = await findOwnedTask(req.params.id, req.user.id);
     if (!task) return res.status(404).json({ success: false, message: 'Tâche introuvable' });
 
     const { title, description, priority, status, category, deadline, start_time, end_time } = req.body;
     await task.update({ title, description, priority, status, category, deadline, start_time, end_time });
-    res.json({ success: true, data: task, message: 'Tâche mise à jour' });
+    const refreshed = await Task.findByPk(task.id, { include: [subtaskInclude] });
+    res.json({ success: true, data: taskWithSubtasksJson(refreshed), message: 'Tâche mise à jour' });
   } catch (err) {
     res.status(400).json({ success: false, message: err.message });
   }
@@ -68,7 +104,7 @@ const updateTask = async (req, res) => {
 // DELETE /api/tasks/:id
 const deleteTask = async (req, res) => {
   try {
-    const task = await Task.findOne({ where: { id: req.params.id, user_id: req.user.id } });
+    const task = await findOwnedTask(req.params.id, req.user.id);
     if (!task) return res.status(404).json({ success: false, message: 'Tâche introuvable' });
 
     await task.destroy();
@@ -81,7 +117,7 @@ const deleteTask = async (req, res) => {
 // PATCH /api/tasks/:id/done
 const markAsDone = async (req, res) => {
   try {
-    const task = await Task.findOne({ where: { id: req.params.id, user_id: req.user.id } });
+    const task = await findOwnedTask(req.params.id, req.user.id);
     if (!task) return res.status(404).json({ success: false, message: 'Tâche introuvable' });
 
     await task.update({ status: 'DONE', completed_at: new Date() });
@@ -94,11 +130,77 @@ const markAsDone = async (req, res) => {
 // PATCH /api/tasks/:id/progress
 const markInProgress = async (req, res) => {
   try {
-    const task = await Task.findOne({ where: { id: req.params.id, user_id: req.user.id } });
+    const task = await findOwnedTask(req.params.id, req.user.id);
     if (!task) return res.status(404).json({ success: false, message: 'Tâche introuvable' });
 
     await task.update({ status: 'IN_PROGRESS', completed_at: null });
     res.json({ success: true, data: task, message: 'Tâche en cours' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// POST /api/tasks/:id/subtasks
+const createSubtask = async (req, res) => {
+  try {
+    const task = await findOwnedTask(req.params.id, req.user.id);
+    if (!task) return res.status(404).json({ success: false, message: 'Tâche introuvable' });
+
+    const { titre } = req.body;
+    if (!titre || !String(titre).trim()) {
+      return res.status(400).json({ success: false, message: 'Le titre de la sous-tâche est obligatoire' });
+    }
+
+    const maxOrdre = await SubTask.max('ordre', { where: { task_id: task.id } });
+    const subtask = await SubTask.create({
+      task_id: task.id,
+      titre: String(titre).trim(),
+      terminee: false,
+      ordre: (maxOrdre ?? -1) + 1
+    });
+
+    res.status(201).json({ success: true, data: subtask, message: 'Sous-tâche créée' });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
+  }
+};
+
+// PATCH /api/tasks/:id/subtasks/:subtaskId
+const updateSubtask = async (req, res) => {
+  try {
+    const task = await findOwnedTask(req.params.id, req.user.id);
+    if (!task) return res.status(404).json({ success: false, message: 'Tâche introuvable' });
+
+    const subtask = await SubTask.findOne({
+      where: { id: req.params.subtaskId, task_id: task.id }
+    });
+    if (!subtask) return res.status(404).json({ success: false, message: 'Sous-tâche introuvable' });
+
+    const { titre, terminee } = req.body;
+    const patch = {};
+    if (titre !== undefined) patch.titre = String(titre).trim();
+    if (terminee !== undefined) patch.terminee = !!terminee;
+    await subtask.update(patch);
+
+    res.json({ success: true, data: subtask, message: 'Sous-tâche mise à jour' });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
+  }
+};
+
+// DELETE /api/tasks/:id/subtasks/:subtaskId
+const deleteSubtask = async (req, res) => {
+  try {
+    const task = await findOwnedTask(req.params.id, req.user.id);
+    if (!task) return res.status(404).json({ success: false, message: 'Tâche introuvable' });
+
+    const subtask = await SubTask.findOne({
+      where: { id: req.params.subtaskId, task_id: task.id }
+    });
+    if (!subtask) return res.status(404).json({ success: false, message: 'Sous-tâche introuvable' });
+
+    await subtask.destroy();
+    res.json({ success: true, message: 'Sous-tâche supprimée' });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -126,4 +228,16 @@ const getStats = async (req, res) => {
   }
 };
 
-module.exports = { getAllTasks, getTaskById, createTask, updateTask, deleteTask, markAsDone, markInProgress, getStats };
+module.exports = {
+  getAllTasks,
+  getTaskById,
+  createTask,
+  updateTask,
+  deleteTask,
+  markAsDone,
+  markInProgress,
+  createSubtask,
+  updateSubtask,
+  deleteSubtask,
+  getStats
+};

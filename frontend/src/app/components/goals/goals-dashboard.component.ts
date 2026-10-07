@@ -83,7 +83,7 @@ import { ScanDocumentComponent } from './scan-document.component';
       <!-- Form Modal -->
       <app-goal-form
         *ngIf="showForm()"
-        [initialData]="editingGoal() ? { title: editingGoal()!.title, category: editingGoal()!.category, annual_target: editingGoal()!.annual_target, year: editingGoal()!.year, color: editingGoal()!.color, description: editingGoal()!.description } : null"
+        [initialData]="editingGoal() ? { title: editingGoal()!.title, category: editingGoal()!.category, annual_target: editingGoal()!.annual_target, year: editingGoal()!.year, color: editingGoal()!.color } : null"
         [isEdit]="!!editingGoal()"
         (save)="onSave($event)"
         (cancel)="closeForm()">

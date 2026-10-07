@@ -53,6 +53,8 @@
           {{ task.category }}
         </span>
 
+        <span *ngIf="subtaskLabel" class="text-indigo-600 dark:text-indigo-400 font-medium">{{ subtaskLabel }}</span>
+
         <!-- Échéance -->
         <span *ngIf="task.deadline" class="flex items-center gap-1" [class]="deadlineColor">
           <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">

@@ -1,12 +1,14 @@
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Task, TaskCreate, TaskUpdate, CATEGORIES } from '../../models/task.model';
+import { TaskSubtasksComponent } from '../task-subtasks/task-subtasks.component';
+import { TaskService } from '../../services/task.service';
 
 @Component({
   selector: 'app-task-form',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TaskSubtasksComponent],
   templateUrl: './task-form.component.html'
 })
 export class TaskFormComponent implements OnInit {
@@ -14,6 +16,7 @@ export class TaskFormComponent implements OnInit {
   @Output() save = new EventEmitter<TaskCreate | TaskUpdate>();
   @Output() cancel = new EventEmitter<void>();
 
+  private taskService = inject(TaskService);
   categories = CATEGORIES;
 
   form: TaskCreate = {
@@ -47,5 +50,14 @@ export class TaskFormComponent implements OnInit {
   onSubmit() {
     if (!this.form.title.trim()) return;
     this.save.emit({ ...this.form });
+  }
+
+  onCompleteParent() {
+    if (!this.task) return;
+    this.taskService.markDone(this.task.id).subscribe({
+      next: () => {
+        if (this.task) this.task = { ...this.task, status: 'DONE' };
+      }
+    });
   }
 }

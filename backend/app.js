@@ -17,12 +17,16 @@ const PORT = process.env.PORT || 3000;
 // Associations
 const Goal = require('./models/goal.model');
 const Task = require('./models/task.model');
+const SubTask = require('./models/subtask.model');
 const User = require('./models/user.model');
 const Project = require('./models/project.model');
 const DailyMetrics = require('./models/daily_metrics.model');
 
 Goal.hasMany(Task, { foreignKey: 'goal_id', as: 'tasks', onDelete: 'CASCADE' });
 Task.belongsTo(Goal, { foreignKey: 'goal_id', as: 'goal' });
+
+Task.hasMany(SubTask, { foreignKey: 'task_id', as: 'subtasks', onDelete: 'CASCADE' });
+SubTask.belongsTo(Task, { foreignKey: 'task_id', as: 'task' });
 
 User.hasMany(Goal, { foreignKey: 'user_id', as: 'goals', onDelete: 'CASCADE' });
 Goal.belongsTo(User, { foreignKey: 'user_id', as: 'user' });

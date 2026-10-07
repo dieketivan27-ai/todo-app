@@ -38,6 +38,13 @@ export class TaskItemComponent {
     return `Dans ${days}j`;
   }
 
+  get subtaskLabel(): string | null {
+    const list = this.task.subtasks;
+    if (!list?.length) return null;
+    const done = list.filter(s => s.terminee).length;
+    return `${done}/${list.length} sous-tâches`;
+  }
+
   get deadlineColor(): string {
     const days = this.daysUntilDeadline;
     if (days === null) return '';

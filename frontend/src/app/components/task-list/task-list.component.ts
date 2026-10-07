@@ -4,11 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { Task, TaskCreate, TaskUpdate, CATEGORIES } from '../../models/task.model';
 import { TaskService } from '../../services/task.service';
+import { TaskSubtasksComponent } from '../task-subtasks/task-subtasks.component';
 
 @Component({
   selector: 'app-task-list',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TaskSubtasksComponent],
   template: `
     <div class="space-y-6 max-w-7xl mx-auto">
 
@@ -133,6 +134,9 @@ import { TaskService } from '../../services/task.service';
                 {{ task.deadline | date:'d MMM' }}
               </span>
               <span [class]="getPriorityClass(task.priority)">{{ getPriorityLabel(task.priority) }}</span>
+              <span *ngIf="subtaskProgress(task)" class="text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100">
+                {{ subtaskProgress(task) }}
+              </span>
             </div>
           </div>
           <div class="flex flex-col sm:flex-row lg:flex-col gap-1 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity">
@@ -192,7 +196,14 @@ import { TaskService } from '../../services/task.service';
               <label class="block text-sm font-bold text-gray-700 mb-1">Date limite</label>
               <input type="date" [(ngModel)]="form.deadline"
                 class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#3b28cc]/20 focus:border-[#3b28cc] transition-colors">
+              <p class="text-[10px] text-gray-400 mt-1">Visible chaque jour dans le planning jusqu'à complétion.</p>
             </div>
+
+            <app-task-subtasks *ngIf="editingTask() as editTask"
+              [taskId]="editTask.id"
+              [parentStatus]="editTask.status"
+              [initialSubtasks]="editTask.subtasks || null"
+              (completeParent)="markDoneFromSubtasks(editTask)" />
           </div>
 
           <div *ngIf="formError()" class="mt-4 text-sm text-red-600 bg-red-50 px-4 py-2.5 rounded-xl border border-red-100">{{ formError() }}</div>
@@ -284,10 +295,35 @@ export class TaskListComponent implements OnInit {
     this.showModal.set(true);
   }
   openEditModal(task: Task) {
-    this.editingTask.set(task);
-    this.form = { title: task.title, description: task.description || '', priority: task.priority, category: task.category, deadline: task.deadline || '' };
     this.formError.set(null);
     this.showModal.set(true);
+    this.taskService.getById(task.id).subscribe({
+      next: full => {
+        this.editingTask.set(full);
+        this.form = {
+          title: full.title,
+          description: full.description || '',
+          priority: full.priority,
+          category: full.category,
+          deadline: full.deadline || ''
+        };
+      },
+      error: () => {
+        this.editingTask.set(task);
+        this.form = { title: task.title, description: task.description || '', priority: task.priority, category: task.category, deadline: task.deadline || '' };
+      }
+    });
+  }
+
+  subtaskProgress(task: Task): string | null {
+    const list = task.subtasks;
+    if (!list?.length) return null;
+    const done = list.filter(s => s.terminee).length;
+    return `${done}/${list.length} sous-tâches`;
+  }
+
+  markDoneFromSubtasks(task: Task) {
+    this.taskService.markDone(task.id).subscribe({ next: () => this.loadTasks() });
   }
   closeModal() { this.showModal.set(false); this.editingTask.set(null); }
 

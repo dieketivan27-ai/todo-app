@@ -3,6 +3,16 @@ export type Status = 'TODO' | 'IN_PROGRESS' | 'DONE' | 'LATE';
 
 export type FreqType = 'once' | 'weekly_until_done';
 
+export interface SubTask {
+  id: number;
+  task_id: number;
+  titre: string;
+  terminee: boolean;
+  ordre: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface Task {
   id: number;
   title: string;
@@ -21,6 +31,7 @@ export interface Task {
   created_at: string;
   updated_at: string;
   completed_at?: string;
+  subtasks?: SubTask[];
 }
 
 export interface PlanningSlot extends Task {
@@ -28,6 +39,10 @@ export interface PlanningSlot extends Task {
   is_generated_slot: boolean;
   goal_title?: string | null;
   goal_color?: string | null;
+  occurrence_date?: string;
+  task_deadline?: string | null;
+  is_overdue?: boolean;
+  is_completed_occurrence?: boolean;
 }
 
 export interface WeekPlanning {
