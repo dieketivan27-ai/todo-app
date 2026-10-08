@@ -43,7 +43,12 @@ export interface PlanningSlot extends Task {
   task_deadline?: string | null;
   is_overdue?: boolean;
   is_completed_occurrence?: boolean;
+  // champs file séquentielle
+  queue_state?: 'active' | 'upcoming' | 'completed' | 'overdue' | null;
+  subtasks?: { id: number; titre: string; terminee: boolean; ordre: number }[];
+  current_subtask_id?: number | null;
 }
+
 
 export interface WeekPlanning {
   week: {

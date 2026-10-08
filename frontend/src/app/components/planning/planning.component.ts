@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+﻿import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { PlanningSlot } from '../../models/task.model';
@@ -12,10 +12,11 @@ import { TaskService } from '../../services/task.service';
   template: `
     <div class="space-y-6 max-w-7xl mx-auto">
 
+      <!-- En-tÃªte -->
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 class="text-2xl font-extrabold text-gray-900 mb-1">Planning &amp; Time-blocking</h1>
-          <p class="text-sm text-gray-500 font-medium">Tâches avec échéance affichées jusqu'à leur échéance ou leur complétion + variables d'objectifs.</p>
+          <p class="text-sm text-gray-500 font-medium">File progressive : une tÃ¢che Ã  la fois, sous-tÃ¢che aprÃ¨s sous-tÃ¢che.</p>
         </div>
         <div class="flex items-center gap-2 flex-wrap">
           <button (click)="goToToday()" *ngIf="weekOffset() !== 0" class="text-sm font-bold text-[#3b28cc] hover:underline transition-all">
@@ -24,13 +25,14 @@ import { TaskService } from '../../services/task.service';
           <button (click)="prevWeek()" class="flex items-center gap-2 border border-gray-200 bg-white text-gray-700 px-3 py-2 rounded-xl text-sm font-bold hover:bg-gray-50 transition-colors">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
           </button>
-          <span class="text-sm font-bold text-gray-700 bg-white border border-gray-200 rounded-xl px-3 py-2 shadow-sm whitespace-nowrap">S{{ weekNum() }} • {{ weekRange() }}</span>
+          <span class="text-sm font-bold text-gray-700 bg-white border border-gray-200 rounded-xl px-3 py-2 shadow-sm whitespace-nowrap">S{{ weekNum() }} â€¢ {{ weekRange() }}</span>
           <button (click)="nextWeek()" class="flex items-center gap-2 border border-gray-200 bg-white text-gray-700 px-3 py-2 rounded-xl text-sm font-bold hover:bg-gray-50 transition-colors">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
           </button>
         </div>
       </div>
 
+      <!-- Calendrier jour -->
       <div class="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
         <div class="flex lg:grid lg:grid-cols-7 overflow-x-auto snap-x snap-mandatory scrollbar-none">
           <div *ngFor="let day of weekDays(); let i = index"
@@ -40,12 +42,13 @@ import { TaskService } from '../../services/task.service';
             <p class="text-[9px] md:text-[10px] font-bold uppercase tracking-wider mb-1 truncate" [class]="i === selectedDay() ? 'text-indigo-200' : 'text-gray-400'">{{ day.label }}</p>
             <p class="text-xl md:text-2xl font-extrabold">{{ day.num }}</p>
             <p class="text-[10px] md:text-[11px] font-semibold mt-1" [class]="i === selectedDay() ? 'text-indigo-200' : 'text-gray-400'">
-              {{ getTasksForDay(i).length }} crén.
+              {{ getTasksForDay(i).length }} crÃ©n.
             </p>
           </div>
         </div>
       </div>
 
+      <!-- Liste des blocs du jour -->
       <div>
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
           <div class="flex items-center gap-2 text-sm font-bold text-gray-700 min-w-0">
@@ -57,7 +60,7 @@ import { TaskService } from '../../services/task.service';
           </div>
         </div>
 
-        <div *ngIf="loading()" class="text-center py-8 text-gray-400 text-sm">Chargement du planning…</div>
+        <div *ngIf="loading()" class="text-center py-8 text-gray-400 text-sm">Chargement du planningâ€¦</div>
 
         <div *ngIf="!loading() && displayTasks().length === 0" class="bg-white border border-dashed border-gray-200 rounded-2xl p-12 text-center">
           <div class="w-16 h-16 bg-indigo-50 rounded-3xl flex items-center justify-center mx-auto mb-5">
@@ -65,8 +68,8 @@ import { TaskService } from '../../services/task.service';
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
             </svg>
           </div>
-          <h3 class="text-lg font-bold text-gray-900 mb-2">Aucun bloc programmé</h3>
-          <p class="text-gray-500 font-medium mb-5 max-w-sm mx-auto">Ajoutez des variables d'action à un objectif ou créez des tâches avec une échéance cette semaine.</p>
+          <h3 class="text-lg font-bold text-gray-900 mb-2">Aucun bloc programmÃ©</h3>
+          <p class="text-gray-500 font-medium mb-5 max-w-sm mx-auto">Ajoutez des variables d'action Ã  un objectif ou crÃ©ez des tÃ¢ches avec une Ã©chÃ©ance cette semaine.</p>
           <a routerLink="/goals" class="inline-flex items-center gap-2 bg-[#3b28cc] text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm hover:bg-[#3222b0] transition-colors">
             Voir les objectifs
           </a>
@@ -74,69 +77,127 @@ import { TaskService } from '../../services/task.service';
 
         <div *ngIf="!loading() && displayTasks().length > 0" class="space-y-3">
           <div *ngFor="let task of displayTasks()"
-            class="bg-white border rounded-2xl p-3 md:p-4 shadow-sm flex items-center gap-3 md:gap-4"
+            class="bg-white border rounded-2xl shadow-sm overflow-hidden"
             [ngClass]="taskRowClasses(task)">
-            <div class="flex-shrink-0 text-center min-w-[70px] md:min-w-[90px]">
-              <span class="text-xs font-extrabold text-gray-700 bg-gray-100 px-2 md:px-3 py-1.5 rounded-lg block">
-                {{ task.start_time || '—' }}
-              </span>
-            </div>
 
-            <div class="flex-1 min-w-0">
-              <h4 class="font-bold text-gray-900 text-sm break-words line-clamp-2"
-                [class.line-through]="task.status === 'DONE' || task.is_completed_occurrence"
-                [class.text-gray-500]="task.status === 'DONE' || task.is_completed_occurrence">{{ task.title }}</h4>
-              <div class="flex flex-wrap items-center gap-1.5 mt-1">
-                <span class="text-[10px] font-bold text-[#3b28cc] bg-indigo-50 px-1.5 py-0.5 rounded">{{ task.category }}</span>
-                <span *ngIf="task.is_action_variable"
-                  class="text-[10px] font-bold text-violet-700 bg-violet-100 px-1.5 py-0.5 rounded cursor-help"
-                  [title]="'Objectif : ' + (task.goal_title || '—')">
-                  Objectif • V{{ task.action_index || '?' }}
+            <!-- Ligne principale -->
+            <div class="p-3 md:p-4 flex items-start gap-3 md:gap-4">
+              <div class="flex-shrink-0 text-center min-w-[70px] md:min-w-[90px]">
+                <span class="text-xs font-extrabold text-gray-700 bg-gray-100 px-2 md:px-3 py-1.5 rounded-lg block">
+                  {{ task.start_time || 'â€”' }}
                 </span>
-                <span *ngIf="task.is_overdue && task.status !== 'DONE'"
-                  class="text-[10px] font-bold text-red-700 bg-red-100 px-1.5 py-0.5 rounded">
-                  En retard
-                </span>
-                <span *ngIf="task.task_deadline && !task.is_action_variable && task.status !== 'DONE'"
-                  class="text-[10px] font-bold text-gray-500 hidden sm:inline">
-                  limite {{ task.task_deadline }}
-                </span>
-                <span *ngIf="!task.is_action_variable && !task.is_overdue" class="text-[10px] font-bold text-gray-400 hidden sm:inline">• DEEP WORK</span>
               </div>
-              <p *ngIf="task.is_action_variable && task.goal_title" class="text-[10px] text-violet-600 mt-1 truncate">
-                {{ task.goal_title }}
-              </p>
+
+              <div class="flex-1 min-w-0">
+                <h4 class="font-bold text-gray-900 text-sm break-words line-clamp-2"
+                  [class.line-through]="task.status === 'DONE' || task.is_completed_occurrence"
+                  [class.text-gray-500]="task.status === 'DONE' || task.is_completed_occurrence">{{ task.title }}</h4>
+
+                <div class="flex flex-wrap items-center gap-1.5 mt-1">
+                  <span class="text-[10px] font-bold text-[#3b28cc] bg-indigo-50 px-1.5 py-0.5 rounded">{{ task.category }}</span>
+
+                  <!-- Badge Objectif -->
+                  <span *ngIf="task.is_action_variable"
+                    class="text-[10px] font-bold text-violet-700 bg-violet-100 px-1.5 py-0.5 rounded cursor-help"
+                    [title]="'Objectif : ' + (task.goal_title || 'â€”')">
+                    Objectif â€¢ V{{ task.action_index ?? '?' }}
+                  </span>
+
+                  <!-- Badge queue_state -->
+                  <span *ngIf="task.queue_state === 'active'"
+                    class="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded">
+                    â–¶ Active
+                  </span>
+                  <span *ngIf="task.queue_state === 'upcoming'"
+                    class="text-[10px] font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">
+                    Ã€ venir
+                  </span>
+                  <span *ngIf="task.queue_state === 'overdue' || (task.is_overdue && task.status !== 'DONE')"
+                    class="text-[10px] font-bold text-red-700 bg-red-100 px-1.5 py-0.5 rounded">
+                    En retard
+                  </span>
+
+                  <!-- Deadline classique -->
+                  <span *ngIf="task.task_deadline && !task.is_action_variable && task.status !== 'DONE'"
+                    class="text-[10px] font-bold text-gray-500 hidden sm:inline">
+                    limite {{ task.task_deadline }}
+                  </span>
+                  <span *ngIf="!task.is_action_variable && !task.is_overdue" class="text-[10px] font-bold text-gray-400 hidden sm:inline">â€¢ DEEP WORK</span>
+                </div>
+
+                <p *ngIf="task.is_action_variable && task.goal_title" class="text-[10px] text-violet-600 mt-1 truncate">
+                  {{ task.goal_title }}
+                </p>
+              </div>
+
+              <!-- Actions -->
+              <div class="flex flex-col sm:flex-row items-end sm:items-center gap-2 flex-shrink-0">
+                <!-- Bouton Terminer : variable active sans sous-tÃ¢ches, ou tÃ¢che classique non terminÃ©e -->
+                <button
+                  *ngIf="task.status !== 'DONE' && canShowCompleteButton(task)"
+                  type="button"
+                  (click)="markActionDone(task)"
+                  [disabled]="completingId() === task.id"
+                  class="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-1 rounded-lg hover:bg-emerald-100 disabled:opacity-50">
+                  Terminer
+                </button>
+
+                <span *ngIf="task.status === 'DONE'"
+                  class="hidden sm:flex items-center gap-1.5 bg-emerald-50 text-emerald-600 border border-emerald-200 px-3 py-1.5 rounded-xl text-xs font-bold">
+                  âœ“ ComplÃ©tÃ©
+                </span>
+                <span *ngIf="task.status === 'IN_PROGRESS' && task.queue_state !== 'active'"
+                  class="hidden sm:flex items-center gap-1.5 bg-amber-50 text-amber-600 border border-amber-200 px-3 py-1.5 rounded-xl text-xs font-bold">
+                  En cours
+                </span>
+                <span *ngIf="(task.status === 'TODO' || task.status === 'LATE') && !task.is_action_variable"
+                  class="hidden sm:flex items-center gap-1.5 bg-indigo-50 text-[#3b28cc] border border-indigo-100 px-3 py-1.5 rounded-xl text-xs font-bold">
+                  PrÃ©vu
+                </span>
+              </div>
             </div>
 
-            <div class="flex flex-col sm:flex-row items-end sm:items-center gap-2 flex-shrink-0">
-              <button *ngIf="!task.is_action_variable && task.status !== 'DONE'"
-                type="button"
-                (click)="markActionDone(task)"
-                [disabled]="completingId() === task.id"
-                class="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-1 rounded-lg hover:bg-emerald-100 disabled:opacity-50">
-                Terminer
-              </button>
-              <button *ngIf="task.status !== 'DONE'"
-  type="button"
-  (click)="markActionDone(task)"
-  [disabled]="completingId() === task.id"
-  class="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-1 rounded-lg hover:bg-emerald-100 disabled:opacity-50">
-  Terminer
-</button>
-              <span *ngIf="task.status === 'DONE'"
-                class="hidden sm:flex items-center gap-1.5 bg-emerald-50 text-emerald-600 border border-emerald-200 px-3 py-1.5 rounded-xl text-xs font-bold">
-                ✓ Complété
-              </span>
-              <span *ngIf="task.status === 'IN_PROGRESS'"
-                class="hidden sm:flex items-center gap-1.5 bg-amber-50 text-amber-600 border border-amber-200 px-3 py-1.5 rounded-xl text-xs font-bold">
-                En cours
-              </span>
-              <span *ngIf="task.status === 'TODO' || task.status === 'LATE'"
-                class="hidden sm:flex items-center gap-1.5 bg-indigo-50 text-[#3b28cc] border border-indigo-100 px-3 py-1.5 rounded-xl text-xs font-bold">
-                Prévu
-              </span>
+            <!-- Checklist des sous-tÃ¢ches (uniquement pour les variables d'action) -->
+            <div *ngIf="task.is_action_variable && task.subtasks && task.subtasks.length > 0"
+              class="border-t px-4 py-3 space-y-2"
+              [class.border-violet-100]="task.queue_state === 'active'"
+              [class.border-gray-100]="task.queue_state !== 'active'">
+
+              <div *ngFor="let st of task.subtasks"
+                class="flex items-center gap-2.5 rounded-lg px-2 py-1.5 transition-colors"
+                [class.bg-violet-50]="st.id === task.current_subtask_id"
+                [class.opacity-40]="task.queue_state === 'upcoming'"
+                [class.cursor-not-allowed]="task.queue_state !== 'active' || (st.id !== task.current_subtask_id && !st.terminee)">
+
+                <!-- Case Ã  cocher : active seulement sur la sous-tÃ¢che en cours de la variable active -->
+                <input
+                  type="checkbox"
+                  [id]="'st-' + st.id"
+                  [checked]="st.terminee"
+                  [disabled]="task.queue_state !== 'active' || togglingSubtaskId() === st.id || (st.id !== task.current_subtask_id && !st.terminee)"
+                  (change)="toggleSubtask(task, st.id, !st.terminee)"
+                  class="w-4 h-4 accent-violet-600 rounded cursor-pointer disabled:cursor-not-allowed disabled:opacity-50">
+
+                <label
+                  [for]="'st-' + st.id"
+                  class="text-xs font-medium flex-1 cursor-pointer select-none"
+                  [class.line-through]="st.terminee"
+                  [class.text-gray-400]="st.terminee"
+                  [class.text-gray-700]="!st.terminee && st.id !== task.current_subtask_id"
+                  [class.text-violet-800]="st.id === task.current_subtask_id && !st.terminee"
+                  [class.font-bold]="st.id === task.current_subtask_id && !st.terminee">
+                  {{ st.titre }}
+                </label>
+
+                <!-- Indicateur "en cours" -->
+                <span *ngIf="st.id === task.current_subtask_id && !st.terminee"
+                  class="text-[9px] font-bold text-violet-600 bg-violet-100 px-1.5 py-0.5 rounded-full whitespace-nowrap">
+                  En cours
+                </span>
+              </div>
             </div>
-          </div>
+
+          </div><!-- /card -->
         </div>
       </div>
 
@@ -150,6 +211,7 @@ export class PlanningComponent implements OnInit {
   slots = signal<PlanningSlot[]>([]);
   loading = signal(false);
   completingId = signal<number | null>(null);
+  togglingSubtaskId = signal<number | null>(null);
 
   weekOffset = signal(0);
   selectedDay = signal(0);
@@ -223,7 +285,7 @@ export class PlanningComponent implements OnInit {
 
     const sun = new Date(monday);
     sun.setDate(monday.getDate() + 6);
-    this.weekRange.set(`${monday.getDate()} – ${sun.getDate()} ${sun.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}`);
+    this.weekRange.set(`${monday.getDate()} â€“ ${sun.getDate()} ${sun.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}`);
     this.currentMonth.set(today.toLocaleDateString('fr-FR', { month: 'long' }));
   }
 
@@ -254,26 +316,36 @@ export class PlanningComponent implements OnInit {
   displayTasks = computed(() => {
     const dayIndex = this.selectedDay();
     const day = this.weekDays()[dayIndex];
-    const all = this.slots();
     if (!day) return [];
-    return all.filter(s => s.deadline === day.dateKey);
+    return this.slots().filter(s => s.deadline === day.dateKey);
   });
 
   getTotalFocusHours(): number {
     return Math.max(0, Math.ceil(this.displayTasks().length * 1.5));
   }
 
+  /**
+   * Affiche le bouton "Terminer" uniquement pour :
+   *  - une variable active sans sous-tÃ¢ches
+   *  - une tÃ¢che classique (pas is_action_variable)
+   */
+  canShowCompleteButton(task: PlanningSlot): boolean {
+    if (!task.is_action_variable) return true;
+    // Variable active sans sous-tÃ¢ches
+    if (task.queue_state === 'active' && (!task.subtasks || task.subtasks.length === 0)) return true;
+    return false;
+  }
+
   taskRowClasses(task: PlanningSlot): Record<string, boolean> {
-    const action = !!task.is_action_variable;
-    const overdue = !!task.is_overdue && task.status !== 'DONE';
-    const done = task.status === 'DONE' || !!task.is_completed_occurrence;
+    const action  = !!task.is_action_variable;
+    const overdue = (task.queue_state === 'overdue') || (!!task.is_overdue && task.status !== 'DONE');
+    const done    = task.status === 'DONE' || !!task.is_completed_occurrence;
+    const upcoming = task.queue_state === 'upcoming';
     return {
-      'border-violet-200': action && !overdue,
-      'bg-violet-50/40': action && !overdue,
-      'border-red-300': overdue,
-      'bg-red-50/50': overdue,
-      'border-emerald-200': !action && done && !overdue,
-      'bg-emerald-50/30': !action && done && !overdue,
+      'border-violet-200 bg-violet-50/40': action && !overdue && !done && !upcoming,
+      'border-gray-200 bg-gray-50/60 opacity-70': upcoming,
+      'border-red-300 bg-red-50/50': overdue,
+      'border-emerald-200 bg-emerald-50/30': done,
       'border-amber-200': !action && !done && !overdue && task.status === 'IN_PROGRESS',
       'border-gray-100': !action && !done && !overdue && (task.status === 'TODO' || task.status === 'LATE')
     };
@@ -287,6 +359,17 @@ export class PlanningComponent implements OnInit {
         this.loadWeek();
       },
       error: () => this.completingId.set(null)
+    });
+  }
+
+  toggleSubtask(task: PlanningSlot, subtaskId: number, terminee: boolean) {
+    this.togglingSubtaskId.set(subtaskId);
+    this.taskService.updateSubtask(task.id, subtaskId, { terminee }).subscribe({
+      next: () => {
+        this.togglingSubtaskId.set(null);
+        this.loadWeek();
+      },
+      error: () => this.togglingSubtaskId.set(null)
     });
   }
 }

@@ -182,11 +182,26 @@ const updateSubtask = async (req, res) => {
     if (terminee !== undefined) patch.terminee = !!terminee;
     await subtask.update(patch);
 
+    // ── Auto-complete / revert parent task ───────────────────────────────────
+    if (terminee !== undefined) {
+      const allSubtasks = await SubTask.findAll({ where: { task_id: task.id } });
+      const allDone = allSubtasks.every(s => s.terminee);
+
+      if (allDone && task.status !== 'DONE') {
+        // Toutes les sous-tâches cochées → passer la tâche en DONE
+        await task.update({ status: 'DONE', completed_at: new Date() });
+      } else if (!allDone && task.status === 'DONE') {
+        // Une sous-tâche décochée sur une tâche terminée → remettre EN_PROGRESS
+        await task.update({ status: 'IN_PROGRESS', completed_at: null });
+      }
+    }
+
     res.json({ success: true, data: subtask, message: 'Sous-tâche mise à jour' });
   } catch (err) {
     res.status(400).json({ success: false, message: err.message });
   }
 };
+
 
 // DELETE /api/tasks/:id/subtasks/:subtaskId
 const deleteSubtask = async (req, res) => {
