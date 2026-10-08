@@ -45,7 +45,7 @@ export interface PlanningSlot extends Task {
   is_completed_occurrence?: boolean;
   // champs file séquentielle
   queue_state?: 'active' | 'upcoming' | 'completed' | 'overdue' | null;
-  subtasks?: { id: number; titre: string; terminee: boolean; ordre: number }[];
+  // subtasks est déjà hérité de Task (SubTask[]) — pas besoin de le redéclarer
   current_subtask_id?: number | null;
 }
 
