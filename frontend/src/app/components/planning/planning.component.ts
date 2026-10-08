@@ -1,4 +1,4 @@
-﻿import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { PlanningSlot } from '../../models/task.model';
@@ -157,40 +157,40 @@ import { TaskService } from '../../services/task.service';
               </div>
             </div>
 
-            <!-- Checklist des sous-tÃ¢ches (uniquement pour les variables d'action) -->
-            <div *ngIf="task.is_action_variable && task.subtasks && task.subtasks.length > 0"
+            <!-- Checklist des sous-tÃ¢ches -->
+            <div *ngIf="task.subtasks && task.subtasks.length > 0"
               class="border-t px-4 py-3 space-y-2"
-              [class.border-violet-100]="task.queue_state === 'active'"
-              [class.border-gray-100]="task.queue_state !== 'active'">
+              [class.border-violet-100]="task.is_action_variable && task.queue_state === 'active'"
+              [class.border-gray-100]="!task.is_action_variable || task.queue_state !== 'active'">
 
               <div *ngFor="let st of task.subtasks"
-                class="flex items-center gap-2.5 rounded-lg px-2 py-1.5 transition-colors"
-                [class.bg-violet-50]="st.id === task.current_subtask_id"
-                [class.opacity-40]="task.queue_state === 'upcoming'"
-                [class.cursor-not-allowed]="task.queue_state !== 'active' || (st.id !== task.current_subtask_id && !st.terminee)">
+                class="flex items-center gap-2.5 rounded-lg px-2 py-1.5 transition-colors min-h-[44px]"
+                [class.bg-violet-50]="task.is_action_variable && st.id === task.current_subtask_id"
+                [class.opacity-40]="task.is_action_variable && task.queue_state === 'upcoming'"
+                [class.cursor-not-allowed]="task.is_action_variable && (task.queue_state !== 'active' || (st.id !== task.current_subtask_id && !st.terminee))">
 
-                <!-- Case Ã  cocher : active seulement sur la sous-tÃ¢che en cours de la variable active -->
+                <!-- Case Ã  cocher -->
                 <input
                   type="checkbox"
                   [id]="'st-' + st.id"
                   [checked]="st.terminee"
-                  [disabled]="task.queue_state !== 'active' || togglingSubtaskId() === st.id || (st.id !== task.current_subtask_id && !st.terminee)"
+                  [disabled]="(task.is_action_variable && task.queue_state !== 'active') || togglingSubtaskId() === st.id || (task.is_action_variable && st.id !== task.current_subtask_id && !st.terminee)"
                   (change)="toggleSubtask(task, st.id, !st.terminee)"
-                  class="w-4 h-4 accent-violet-600 rounded cursor-pointer disabled:cursor-not-allowed disabled:opacity-50">
+                  class="w-5 h-5 md:w-4 md:h-4 accent-violet-600 rounded cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 flex-shrink-0">
 
                 <label
                   [for]="'st-' + st.id"
-                  class="text-xs font-medium flex-1 cursor-pointer select-none"
+                  class="text-sm md:text-xs font-medium flex-1 cursor-pointer select-none py-2"
                   [class.line-through]="st.terminee"
                   [class.text-gray-400]="st.terminee"
-                  [class.text-gray-700]="!st.terminee && st.id !== task.current_subtask_id"
-                  [class.text-violet-800]="st.id === task.current_subtask_id && !st.terminee"
-                  [class.font-bold]="st.id === task.current_subtask_id && !st.terminee">
+                  [class.text-gray-700]="!st.terminee && (!task.is_action_variable || st.id !== task.current_subtask_id)"
+                  [class.text-violet-800]="task.is_action_variable && st.id === task.current_subtask_id && !st.terminee"
+                  [class.font-bold]="task.is_action_variable && st.id === task.current_subtask_id && !st.terminee">
                   {{ st.titre }}
                 </label>
 
-                <!-- Indicateur "en cours" -->
-                <span *ngIf="st.id === task.current_subtask_id && !st.terminee"
+                <!-- Indicateur "en cours" (uniquement variables d'action) -->
+                <span *ngIf="task.is_action_variable && st.id === task.current_subtask_id && !st.terminee"
                   class="text-[9px] font-bold text-violet-600 bg-violet-100 px-1.5 py-0.5 rounded-full whitespace-nowrap">
                   En cours
                 </span>

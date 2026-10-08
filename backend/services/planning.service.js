@@ -1,4 +1,4 @@
-﻿const { Op } = require('sequelize');
+const { Op } = require('sequelize');
 const Task    = require('../models/task.model');
 const Goal    = require('../models/goal.model');
 const SubTask = require('../models/subtask.model');
@@ -315,13 +315,17 @@ async function getWeekPlanning(userId, dateInput) {
       goal_id: { [Op.ne]: null }
     }
   });
+
+  // Collect ALL task IDs to fetch their subtasks without N+1
   const avIds = actionVarRows.map(t => t.id);
+  const classicIds = classicTasks.map(t => t.id);
+  const allTaskIds = [...avIds, ...classicIds];
 
   // 4. Sous-taches en une seule requete (evite le N+1)
   const subtasksByTaskId = {};
-  if (avIds.length > 0) {
+  if (allTaskIds.length > 0) {
     const allSubtasks = await SubTask.findAll({
-      where: { task_id: { [Op.in]: avIds } },
+      where: { task_id: { [Op.in]: allTaskIds } },
       order: [['ordre', 'ASC'], ['id', 'ASC']]
     });
     for (const st of allSubtasks) {
@@ -338,6 +342,8 @@ async function getWeekPlanning(userId, dateInput) {
   // 5. Slots classiques
   const classicSlots = [];
   for (const task of classicTasks) {
+    // Add subtasks explicitly for classic tasks
+    task.subtasks = subtasksByTaskId[task.id] || [];
     classicSlots.push(...expandDeadlineTaskSlots(task, goalMap, weekMonday, todayKey));
   }
 

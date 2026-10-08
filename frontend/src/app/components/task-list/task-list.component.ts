@@ -5,6 +5,7 @@ import { ActivatedRoute } from '@angular/router';
 import { Task, TaskCreate, TaskUpdate, CATEGORIES } from '../../models/task.model';
 import { TaskService } from '../../services/task.service';
 import { TaskSubtasksComponent } from '../task-subtasks/task-subtasks.component';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-task-list',
@@ -134,9 +135,9 @@ import { TaskSubtasksComponent } from '../task-subtasks/task-subtasks.component'
                 {{ task.deadline | date:'d MMM' }}
               </span>
               <span [class]="getPriorityClass(task.priority)">{{ getPriorityLabel(task.priority) }}</span>
-              <span *ngIf="subtaskProgress(task)" class="text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100">
+              <button *ngIf="subtaskProgress(task)" (click)="toggleExpand(task.id)" class="text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-1.5 py-0.5 rounded border border-indigo-100 transition-colors cursor-pointer text-left">
                 {{ subtaskProgress(task) }}
-              </span>
+              </button>
             </div>
           </div>
           <div class="flex flex-col sm:flex-row lg:flex-col gap-1 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity">
@@ -150,6 +151,14 @@ import { TaskSubtasksComponent } from '../task-subtasks/task-subtasks.component'
             <button (click)="deleteTask(task)" class="text-gray-400 hover:text-red-500 p-1 rounded transition-colors" title="Supprimer">
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
             </button>
+          </div>
+        </div>
+
+        <!-- Expanded Subtasks Checklist -->
+        <div *ngIf="expandedTaskIds().has(task.id) && task.subtasks?.length" class="mt-4 pt-3 border-t border-gray-100 space-y-2 pl-8">
+          <div *ngFor="let st of task.subtasks" class="flex items-center gap-2.5 min-h-[44px]">
+            <input type="checkbox" [id]="'st-kanban-' + st.id" [checked]="st.terminee" (change)="toggleSubtask(task, st.id, !st.terminee)" class="w-5 h-5 md:w-4 md:h-4 accent-[#3b28cc] rounded cursor-pointer flex-shrink-0">
+            <label [for]="'st-kanban-' + st.id" class="text-sm font-medium flex-1 cursor-pointer select-none py-2" [class.line-through]="st.terminee" [class.text-gray-400]="st.terminee" [class.text-gray-700]="!st.terminee">{{ st.titre }}</label>
           </div>
         </div>
       </ng-template>
@@ -203,7 +212,24 @@ import { TaskSubtasksComponent } from '../task-subtasks/task-subtasks.component'
               [taskId]="editTask.id"
               [parentStatus]="editTask.status"
               [initialSubtasks]="editTask.subtasks || null"
-              (completeParent)="markDoneFromSubtasks(editTask)" />
+              (completeParent)="markDoneFromSubtasks(editTask)"
+              (subtasksChange)="onSubtasksChange()" />
+
+            <div *ngIf="!editingTask()">
+              <label class="block text-sm font-bold text-gray-700 mb-1">Sous-tâches (optionnel)</label>
+              <div class="flex gap-2 mb-3">
+                <input type="text" [(ngModel)]="newLocalSubtaskTitre" placeholder="Nouvelle sous-tâche..." (keyup.enter)="addLocalSubtask()" class="flex-1 px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#3b28cc]/20">
+                <button (click)="addLocalSubtask()" class="px-4 py-3 bg-gray-100 text-gray-700 font-bold rounded-xl text-sm hover:bg-gray-200 transition-colors">Ajouter</button>
+              </div>
+              <ul class="space-y-2">
+                <li *ngFor="let st of localSubtasks(); let i = index" class="flex items-center justify-between bg-gray-50 px-3 py-2 rounded-lg">
+                  <span class="text-sm font-medium">{{ st.titre }}</span>
+                  <button (click)="removeLocalSubtask(i)" class="text-red-500 hover:bg-red-50 p-1.5 rounded-lg transition-colors">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                  </button>
+                </li>
+              </ul>
+            </div>
           </div>
 
           <div *ngIf="formError()" class="mt-4 text-sm text-red-600 bg-red-50 px-4 py-2.5 rounded-xl border border-red-100">{{ formError() }}</div>
@@ -233,8 +259,13 @@ export class TaskListComponent implements OnInit {
   saving = signal(false);
   formError = signal<string | null>(null);
 
+  expandedTaskIds = signal<Set<number>>(new Set());
+
   searchTerm = '';
   filterPriority = '';
+
+  localSubtasks = signal<{ titre: string; terminee: boolean }[]>([]);
+  newLocalSubtaskTitre = '';
 
   categories = CATEGORIES;
 
@@ -292,6 +323,8 @@ export class TaskListComponent implements OnInit {
     this.editingTask.set(null);
     this.form = { title: '', description: '', priority: 'MEDIUM', category: 'Général', deadline: '' };
     this.formError.set(null);
+    this.localSubtasks.set([]);
+    this.newLocalSubtaskTitre = '';
     this.showModal.set(true);
   }
   openEditModal(task: Task) {
@@ -325,22 +358,55 @@ export class TaskListComponent implements OnInit {
   markDoneFromSubtasks(task: Task) {
     this.taskService.markDone(task.id).subscribe({ next: () => this.loadTasks() });
   }
+
+  onSubtasksChange() {
+    this.loadTasks();
+  }
+
   closeModal() { this.showModal.set(false); this.editingTask.set(null); }
 
-  saveTask() {
+  addLocalSubtask() {
+    const t = this.newLocalSubtaskTitre.trim();
+    if (t) {
+      this.localSubtasks.update(arr => [...arr, { titre: t, terminee: false }]);
+      this.newLocalSubtaskTitre = '';
+    }
+  }
+
+  removeLocalSubtask(index: number) {
+    this.localSubtasks.update(arr => {
+      const n = [...arr];
+      n.splice(index, 1);
+      return n;
+    });
+  }
+
+  async saveTask() {
     if (!this.form.title.trim()) { this.formError.set('Le titre est requis.'); return; }
     this.saving.set(true);
     this.formError.set(null);
     const editing = this.editingTask();
-    // Une date limite vide est envoyée en null (et non '') pour éviter une erreur sur la colonne date
     const payload: any = { ...this.form, deadline: this.form.deadline || null };
-    const obs = editing
-      ? this.taskService.update(editing.id, payload)
-      : this.taskService.create(payload);
-    obs.subscribe({
-      next: () => { this.saving.set(false); this.closeModal(); this.loadTasks(); },
-      error: () => { this.saving.set(false); this.formError.set('Une erreur est survenue.'); }
-    });
+    
+    try {
+      if (editing) {
+        await firstValueFrom(this.taskService.update(editing.id, payload));
+      } else {
+        const res: any = await firstValueFrom(this.taskService.create(payload));
+        const createdTask = res.data;
+        if (this.localSubtasks().length > 0) {
+          for (const st of this.localSubtasks()) {
+            await firstValueFrom(this.taskService.createSubtask(createdTask.id, st.titre));
+          }
+        }
+      }
+      this.saving.set(false);
+      this.closeModal();
+      this.loadTasks();
+    } catch (err) {
+      this.saving.set(false);
+      this.formError.set('Une erreur est survenue.');
+    }
   }
 
   toggleDone(task: Task) {
@@ -358,5 +424,20 @@ export class TaskListComponent implements OnInit {
   deleteTask(task: Task) {
     if (!confirm('Supprimer cette tâche ?')) return;
     this.taskService.delete(task.id).subscribe({ next: () => this.loadTasks() });
+  }
+
+  toggleExpand(taskId: number) {
+    this.expandedTaskIds.update(set => {
+      const newSet = new Set(set);
+      if (newSet.has(taskId)) newSet.delete(taskId);
+      else newSet.add(taskId);
+      return newSet;
+    });
+  }
+
+  toggleSubtask(task: Task, subtaskId: number, terminee: boolean) {
+    this.taskService.updateSubtask(task.id, subtaskId, { terminee }).subscribe({
+      next: () => this.loadTasks()
+    });
   }
 }
