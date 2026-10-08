@@ -15,7 +15,7 @@ import { TaskService } from '../../services/task.service';
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 class="text-2xl font-extrabold text-gray-900 mb-1">Planning &amp; Time-blocking</h1>
-          <p class="text-sm text-gray-500 font-medium">Tâches avec échéance affichées chaque jour jusqu'à complétion + variables d'objectifs.</p>
+          <p class="text-sm text-gray-500 font-medium">Tâches avec échéance affichées jusqu'à leur échéance ou leur complétion + variables d'objectifs.</p>
         </div>
         <div class="flex items-center gap-2 flex-wrap">
           <button (click)="goToToday()" *ngIf="weekOffset() !== 0" class="text-sm font-bold text-[#3b28cc] hover:underline transition-all">
@@ -83,7 +83,9 @@ import { TaskService } from '../../services/task.service';
             </div>
 
             <div class="flex-1 min-w-0">
-              <h4 class="font-bold text-gray-900 text-sm break-words line-clamp-2">{{ task.title }}</h4>
+              <h4 class="font-bold text-gray-900 text-sm break-words line-clamp-2"
+                [class.line-through]="task.status === 'DONE' || task.is_completed_occurrence"
+                [class.text-gray-500]="task.status === 'DONE' || task.is_completed_occurrence">{{ task.title }}</h4>
               <div class="flex flex-wrap items-center gap-1.5 mt-1">
                 <span class="text-[10px] font-bold text-[#3b28cc] bg-indigo-50 px-1.5 py-0.5 rounded">{{ task.category }}</span>
                 <span *ngIf="task.is_action_variable"
@@ -114,16 +116,16 @@ import { TaskService } from '../../services/task.service';
                 class="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-1 rounded-lg hover:bg-emerald-100 disabled:opacity-50">
                 Terminer
               </button>
-              <button *ngIf="task.is_action_variable && task.status !== 'DONE'"
-                type="button"
-                (click)="markActionDone(task)"
-                [disabled]="completingId() === task.id"
-                class="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-1 rounded-lg hover:bg-emerald-100 disabled:opacity-50">
-                Terminer
-              </button>
+              <button *ngIf="task.status !== 'DONE'"
+  type="button"
+  (click)="markActionDone(task)"
+  [disabled]="completingId() === task.id"
+  class="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-1 rounded-lg hover:bg-emerald-100 disabled:opacity-50">
+  Terminer
+</button>
               <span *ngIf="task.status === 'DONE'"
                 class="hidden sm:flex items-center gap-1.5 bg-emerald-50 text-emerald-600 border border-emerald-200 px-3 py-1.5 rounded-xl text-xs font-bold">
-                Complété
+                ✓ Complété
               </span>
               <span *ngIf="task.status === 'IN_PROGRESS'"
                 class="hidden sm:flex items-center gap-1.5 bg-amber-50 text-amber-600 border border-amber-200 px-3 py-1.5 rounded-xl text-xs font-bold">

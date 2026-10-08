@@ -196,7 +196,7 @@ import { TaskSubtasksComponent } from '../task-subtasks/task-subtasks.component'
               <label class="block text-sm font-bold text-gray-700 mb-1">Date limite</label>
               <input type="date" [(ngModel)]="form.deadline"
                 class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#3b28cc]/20 focus:border-[#3b28cc] transition-colors">
-              <p class="text-[10px] text-gray-400 mt-1">Visible chaque jour dans le planning jusqu'à complétion.</p>
+              <p class="text-[10px] text-gray-400 mt-1">Visible chaque jour dans le planning jusqu'à l'échéance ou la complétion.</p>
             </div>
 
             <app-task-subtasks *ngIf="editingTask() as editTask"
@@ -246,12 +246,12 @@ export class TaskListComponent implements OnInit {
     deadline: ''
   };
 
-  ngOnInit() { 
+  ngOnInit() {
     this.route.queryParams.subscribe(params => {
       if (params['search']) {
         this.searchTerm = params['search'];
       }
-      this.loadTasks(); 
+      this.loadTasks();
     });
   }
 
@@ -260,7 +260,7 @@ export class TaskListComponent implements OnInit {
     const params: any = {};
     if (this.searchTerm) params.search = this.searchTerm;
     if (this.filterPriority) params.priority = this.filterPriority;
-    
+
     this.taskService.getAll(params).subscribe({
       next: (tasks) => { this.allTasks.set(tasks); this.loading.set(false); },
       error: () => this.loading.set(false)
@@ -332,9 +332,11 @@ export class TaskListComponent implements OnInit {
     this.saving.set(true);
     this.formError.set(null);
     const editing = this.editingTask();
+    // Une date limite vide est envoyée en null (et non '') pour éviter une erreur sur la colonne date
+    const payload: any = { ...this.form, deadline: this.form.deadline || null };
     const obs = editing
-      ? this.taskService.update(editing.id, this.form)
-      : this.taskService.create(this.form);
+      ? this.taskService.update(editing.id, payload)
+      : this.taskService.create(payload);
     obs.subscribe({
       next: () => { this.saving.set(false); this.closeModal(); this.loadTasks(); },
       error: () => { this.saving.set(false); this.formError.set('Une erreur est survenue.'); }
