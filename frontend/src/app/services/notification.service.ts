@@ -16,7 +16,9 @@ export class NotificationService {
   private baseUrl = '/api/notifications';
 
   getAll(): Observable<{ success: boolean; data: Notification[] }> {
-    return this.http.get<{ success: boolean; data: Notification[] }>(this.baseUrl);
+    return this.http.get<{ success: boolean; data: Notification[] }>(this.baseUrl, {
+      headers: { 'X-Background-Request': 'true' }
+    });
   }
 
   markAsRead(id: number): Observable<any> {

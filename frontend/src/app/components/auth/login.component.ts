@@ -1,7 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
@@ -40,6 +40,11 @@ import { AuthService } from '../../services/auth.service';
             </div>
           </div>
 
+          <div *ngIf="sessionExpired()" class="flex items-center gap-2 text-amber-700 text-sm bg-amber-50 px-4 py-3 rounded-xl border border-amber-100">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Session expirée pour cause d'inactivité. Veuillez vous reconnecter.
+          </div>
+
           <div *ngIf="error()" class="flex items-center gap-2 text-red-600 text-sm bg-red-50 px-4 py-3 rounded-xl border border-red-100">
             <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             {{ error() }}
@@ -65,13 +70,23 @@ import { AuthService } from '../../services/auth.service';
     </div>
   `
 })
-export class LoginComponent {
+export class LoginComponent implements import('@angular/core').OnInit {
   private authService = inject(AuthService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
   credentials = { email: '', password: '' };
   loading = signal(false);
   error = signal<string | null>(null);
+  sessionExpired = signal(false);
+
+  ngOnInit() {
+    this.route.queryParams.subscribe(params => {
+      if (params['reason'] === 'session_expired') {
+        this.sessionExpired.set(true);
+      }
+    });
+  }
 
   onSubmit() {
     if (!this.credentials.email || !this.credentials.password) return;

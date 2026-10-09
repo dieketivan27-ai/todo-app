@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 
 const generateToken = (user) => {
   return jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET || 'super_secret_key', {
-    expiresIn: '7d'
+    expiresIn: '5m'
   });
 };
 
@@ -23,7 +23,7 @@ exports.register = async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 jours
+      maxAge: 5 * 60 * 1000 // 5 minutes
     });
 
     res.status(201).json({
@@ -57,7 +57,7 @@ exports.login = async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 jours
+      maxAge: 5 * 60 * 1000 // 5 minutes
     });
 
     res.status(200).json({
@@ -82,6 +82,10 @@ exports.getMe = async (req, res) => {
 };
 
 exports.logout = (req, res) => {
-  res.clearCookie('token');
+  res.clearCookie('token', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax'
+  });
   res.json({ success: true, message: 'Déconnecté' });
 };

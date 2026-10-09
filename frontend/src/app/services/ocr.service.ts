@@ -58,7 +58,9 @@ export class OcrService {
     const startTime = Date.now();
 
     return timer(0, this.POLL_INTERVAL).pipe(
-      switchMap(() => this.http.get<OcrStatusResponse>(`${this.baseUrl}/status/${taskId}`)),
+      switchMap(() => this.http.get<OcrStatusResponse>(`${this.baseUrl}/status/${taskId}`, {
+        headers: { 'X-Background-Request': 'true' }
+      })),
       // Stop polling once we have a terminal state OR we've exceeded max time
       takeWhile((res, index) => {
         const elapsed = Date.now() - startTime;
