@@ -12,7 +12,8 @@ import { LayoutService } from '../../services/layout.service';
   standalone: true,
   imports: [CommonModule, RouterModule],
   template: `
-    <div class="w-64 h-screen bg-white border-r border-gray-100 flex flex-col fixed left-0 top-0 overflow-y-auto z-50 shadow-sm transition-transform duration-300 md:translate-x-0"
+    <div class="w-64 bg-white border-r border-gray-100 flex flex-col fixed left-0 top-0 bottom-0 overflow-y-auto z-50 shadow-sm transition-transform duration-300 md:translate-x-0"
+         style="height: 100dvh; padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom);"
          [class.-translate-x-full]="!layout.sidebarOpen()"
          [class.translate-x-0]="layout.sidebarOpen()">
 

@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { SidebarComponent } from '../sidebar/sidebar.component';
@@ -68,6 +68,11 @@ export class LayoutComponent implements import('@angular/core').OnInit, import('
 
   acceptCookies() {
     localStorage.setItem('cookie_consent', 'true');
+  }
+
+  @HostListener('window:keydown.escape')
+  onEscape() {
+    this.layout.closeSidebar();
   }
 }
 

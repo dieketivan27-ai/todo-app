@@ -8,9 +8,21 @@ export class LayoutService {
 
   toggleSidebar() {
     this.sidebarOpen.set(!this.sidebarOpen());
+    this.updateBodyScroll();
   }
 
   closeSidebar() {
-    this.sidebarOpen.set(false);
+    if (this.sidebarOpen()) {
+      this.sidebarOpen.set(false);
+      this.updateBodyScroll();
+    }
+  }
+
+  private updateBodyScroll() {
+    if (this.sidebarOpen()) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
   }
 }

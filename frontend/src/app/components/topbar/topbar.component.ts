@@ -13,7 +13,7 @@ import { LayoutService } from '../../services/layout.service';
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule],
   template: `
-    <header class="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-3 md:px-6 sticky top-0 z-40 shadow-sm gap-2 overflow-hidden">
+    <header class="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-3 md:px-6 sticky top-0 z-30 shadow-sm gap-2 overflow-hidden">
 
       <!-- Left: Burger + Greeting + Date -->
       <div class="flex items-center gap-2 md:gap-4">
