@@ -1,4 +1,4 @@
-import { Component, inject, HostListener } from '@angular/core';
+import { Component, inject, HostListener, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { SidebarComponent } from '../sidebar/sidebar.component';
@@ -45,14 +45,13 @@ import { IdleWarningComponent } from '../idle-warning/idle-warning.component';
           <button (click)="acceptCookies()" class="w-full md:w-auto bg-[#3b28cc] hover:bg-[#3222b0] text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition-colors min-h-[44px]">J'ai compris et j'accepte</button>
         </div>
       </div>
-      </div>
 
       <!-- Idle Warning Modal -->
       <app-idle-warning></app-idle-warning>
     </div>
   `
 })
-export class LayoutComponent implements import('@angular/core').OnInit, import('@angular/core').OnDestroy {
+export class LayoutComponent implements OnInit, OnDestroy {
   layout = inject(LayoutService);
   idle = inject(IdleService);
   currentYear = new Date().getFullYear();
