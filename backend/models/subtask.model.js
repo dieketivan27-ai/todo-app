@@ -12,7 +12,7 @@ const SubTask = sequelize.define('SubTask', {
     allowNull: false
   },
   titre: {
-    type: DataTypes.STRING(500),
+    type: DataTypes.TEXT,
     allowNull: false,
     validate: { notEmpty: { msg: 'Le titre est obligatoire' } }
   },

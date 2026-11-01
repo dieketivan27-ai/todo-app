@@ -8,7 +8,7 @@ const Goal = sequelize.define('Goal', {
     autoIncrement: true
   },
   title: {
-    type: DataTypes.STRING(255),
+    type: DataTypes.TEXT,
     allowNull: false,
     validate: {
       notEmpty: { msg: "Le titre est obligatoire" }

@@ -22,8 +22,8 @@ Chart.register(LineElement, PointElement, LinearScale, CategoryScale, Filler, To
         <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
       </svg>
     </div>
-    <div class="goal-card-title">
-      <h3>{{ goal.title }}</h3>
+    <div class="goal-card-title flex-1 min-w-0">
+      <h3 class="break-words whitespace-pre-wrap line-clamp-2" [title]="goal.title">{{ goal.title }}</h3>
       <span class="goal-category">{{ goal.category }}</span>
       <span class="inline-block mt-1 text-[10px] font-bold text-violet-700 bg-violet-100 px-2 py-0.5 rounded-full">
         Actions liées

@@ -127,7 +127,7 @@ import { firstValueFrom } from 'rxjs';
             <svg *ngIf="task.status === 'DONE'" class="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
           </button>
           <div class="flex-1 min-w-0">
-            <h4 class="text-[15px] font-bold leading-tight mb-2" [class]="task.status === 'DONE' ? 'text-gray-400 line-through' : 'text-gray-900'">{{ task.title }}</h4>
+            <h4 class="text-[15px] font-bold leading-tight mb-2 break-words whitespace-pre-wrap line-clamp-3" [class]="task.status === 'DONE' ? 'text-gray-400 line-through' : 'text-gray-900'" [title]="task.title">{{ task.title }}</h4>
             <div class="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[11px] font-semibold text-gray-500">
               <span class="text-[#3b28cc]">{{ task.category }}</span>
               <span *ngIf="task.deadline" class="flex items-center gap-1">
@@ -175,8 +175,11 @@ import { firstValueFrom } from 'rxjs';
           <div class="space-y-4">
             <div>
               <label class="block text-sm font-bold text-gray-700 mb-1">Titre *</label>
-              <input type="text" [(ngModel)]="form.title" placeholder="Ex: Corriger le bug d'auth"
-                class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#3b28cc]/20 focus:border-[#3b28cc] transition-colors">
+              <textarea [(ngModel)]="form.title" placeholder="Ex: Corriger le bug d'auth" rows="1"
+                [maxlength]="1000"
+                class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#3b28cc]/20 focus:border-[#3b28cc] transition-colors resize-y"
+                style="overflow:hidden;resize:vertical;min-height:44px"></textarea>
+              <span class="block text-[10px] text-gray-400 text-right mt-1">{{ (form.title || '').length }} / 1000</span>
             </div>
             <div>
               <label class="block text-sm font-bold text-gray-700 mb-1">Description</label>

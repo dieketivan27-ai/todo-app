@@ -20,9 +20,10 @@
 
       <!-- Titre + badges -->
       <div class="flex flex-wrap items-center gap-2 mb-1">
-        <h3 class="font-medium text-gray-900 dark:text-white text-sm leading-snug"
+        <h3 class="font-medium text-gray-900 dark:text-white text-sm leading-snug break-words whitespace-pre-wrap line-clamp-3"
           [class.line-through]="task.status === 'DONE'"
-          [class.text-gray-400]="task.status === 'DONE'">
+          [class.text-gray-400]="task.status === 'DONE'"
+          [title]="task.title">
           {{ task.title }}
         </h3>
         <!-- Priorité -->

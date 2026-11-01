@@ -52,17 +52,23 @@ import { GoalCreate, CATEGORIES, GOAL_COLORS } from '../../models/task.model';
 
         <ul class="action-rows space-y-2 max-h-[220px] overflow-y-auto pr-1">
           <li *ngFor="let row of actionRows; let i = index; trackBy: trackByIndex"
-            class="action-row flex items-center gap-2">
-            <span class="action-badge">V{{ i + 1 }}</span>
-            <input
-              type="text"
-              class="field-input flex-1 min-w-0 action-input"
-              [(ngModel)]="actionRows[i]"
-              [name]="'action-' + i"
-              [placeholder]="actionPlaceholder(i)"
-              (keydown.enter)="onActionEnter(i, $event)" />
+            class="action-row flex items-start gap-2">
+            <span class="action-badge mt-1">V{{ i + 1 }}</span>
+            <div class="flex-1 min-w-0">
+              <textarea
+                class="field-input w-full action-input"
+                [(ngModel)]="actionRows[i]"
+                [name]="'action-' + i"
+                [placeholder]="actionPlaceholder(i)"
+                [maxlength]="1000"
+                rows="1"
+                (keydown.enter)="onActionEnter(i, $event)"
+                (input)="autoResize($event)"
+                style="overflow:hidden;resize:vertical"></textarea>
+              <span class="action-charcount">{{ (actionRows[i] || '').length }} / 1000</span>
+            </div>
             <button type="button"
-              class="action-remove"
+              class="action-remove mt-1"
               (click)="removeActionRow(i)"
               [disabled]="actionRows.length <= 1"
               title="Supprimer cette ligne">
@@ -123,7 +129,15 @@ import { GoalCreate, CATEGORIES, GOAL_COLORS } from '../../models/task.model';
       border-radius: 8px;
       padding: 6px 0;
     }
-    .action-input { margin: 0; }
+    .action-input { margin: 0; min-height: 38px; }
+    .action-charcount {
+      display: block;
+      text-align: right;
+      font-size: 10px;
+      color: #9ca3af;
+      margin-top: 2px;
+      flex-basis: 100%;
+    }
     .action-remove {
       flex-shrink: 0;
       padding: 8px;
@@ -214,6 +228,12 @@ export class GoalFormComponent implements OnInit {
     if (index === this.actionRows.length - 1) {
       this.addActionRow();
     }
+  }
+
+  autoResize(event: Event) {
+    const el = event.target as HTMLTextAreaElement;
+    el.style.height = 'auto';
+    el.style.height = el.scrollHeight + 'px';
   }
 
   canSave(): boolean {

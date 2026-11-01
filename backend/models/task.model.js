@@ -8,11 +8,11 @@ const Task = sequelize.define('Task', {
     autoIncrement: true
   },
   title: {
-    type: DataTypes.STRING(255),
+    type: DataTypes.TEXT,
     allowNull: false,
     validate: {
       notEmpty: { msg: 'Le titre est obligatoire' },
-      len: { args: [1, 255], msg: 'Le titre doit faire entre 1 et 255 caractères' }
+      len: { args: [1, 1000], msg: 'Le titre doit faire entre 1 et 1000 caractères' }
     }
   },
   description: {

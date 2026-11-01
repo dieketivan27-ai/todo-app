@@ -41,7 +41,7 @@ import { AuthService } from '../../services/auth.service';
         </div>
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6">
           <div class="flex-1 w-full min-w-0">
-            <h3 class="text-xl font-extrabold text-gray-900 mb-1 truncate">{{ northStar()!.title }}</h3>
+            <h3 class="text-xl font-extrabold text-gray-900 mb-1 break-words whitespace-pre-wrap line-clamp-2" [title]="northStar()!.title">{{ northStar()!.title }}</h3>
             <p class="text-xs text-gray-500 font-medium">Rattaché à l'Horizon {{ northStar()!.year }}</p>
           </div>
           <div class="flex-shrink-0 flex items-center w-full sm:w-auto justify-between sm:justify-start gap-4">
@@ -103,7 +103,7 @@ import { AuthService } from '../../services/auth.service';
                 <svg *ngIf="task.status === 'DONE'" class="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
               </div>
             </div>
-            <p class="text-xs font-bold text-gray-800 leading-tight line-clamp-2">{{ task.title }}</p>
+            <p class="text-xs font-bold text-gray-800 leading-tight break-words whitespace-pre-wrap line-clamp-2" [title]="task.title">{{ task.title }}</p>
             <p class="text-[10px] text-[#3b28cc] font-bold mt-1">{{ task.category }}</p>
           </div>
         </div>

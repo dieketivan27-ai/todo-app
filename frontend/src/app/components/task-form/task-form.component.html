@@ -20,8 +20,15 @@
       <!-- Titre -->
       <div>
         <label class="form-label">Titre <span class="text-red-500">*</span></label>
-        <input type="text" [(ngModel)]="form.title" name="title"
-          placeholder="Nom de la tâche..." class="form-input" required autofocus>
+        <textarea [(ngModel)]="form.title" name="title"
+          placeholder="Nom de la tâche..." class="form-input resize-y" rows="1"
+          [maxlength]="1000" required autofocus
+          (input)="autoResizeTitle($event)"
+          style="overflow:hidden;resize:vertical;min-height:42px"></textarea>
+        <div class="flex justify-between items-center text-[10px] text-gray-400 mt-1 px-1">
+          <span>Max 1000 caractères</span>
+          <span>{{ (form.title || '').length }} / 1000</span>
+        </div>
       </div>
 
       <!-- Description -->

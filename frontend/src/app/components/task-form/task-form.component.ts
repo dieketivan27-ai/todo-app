@@ -52,6 +52,12 @@ export class TaskFormComponent implements OnInit {
     this.save.emit({ ...this.form });
   }
 
+  autoResizeTitle(event: Event) {
+    const el = event.target as HTMLTextAreaElement;
+    el.style.height = 'auto';
+    el.style.height = el.scrollHeight + 'px';
+  }
+
   onCompleteParent() {
     if (!this.task) return;
     this.taskService.markDone(this.task.id).subscribe({

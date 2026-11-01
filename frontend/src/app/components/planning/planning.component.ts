@@ -89,7 +89,8 @@ import { TaskService } from '../../services/task.service';
               </div>
 
               <div class="flex-1 min-w-0">
-                <h4 class="font-bold text-gray-900 text-sm break-words line-clamp-2"
+                <h4 class="font-bold text-gray-900 text-sm break-words whitespace-pre-wrap line-clamp-2"
+                  [title]="task.title"
                   [class.line-through]="task.status === 'DONE' || task.is_completed_occurrence"
                   [class.text-gray-500]="task.status === 'DONE' || task.is_completed_occurrence">{{ task.title }}</h4>
 
@@ -125,7 +126,7 @@ import { TaskService } from '../../services/task.service';
                   <span *ngIf="!task.is_action_variable && !task.is_overdue" class="text-[10px] font-bold text-gray-400 hidden sm:inline">â€¢ DEEP WORK</span>
                 </div>
 
-                <p *ngIf="task.is_action_variable && task.goal_title" class="text-[10px] text-violet-600 mt-1 truncate">
+                <p *ngIf="task.is_action_variable && task.goal_title" class="text-[10px] text-violet-600 mt-1 break-words line-clamp-1" [title]="task.goal_title">
                   {{ task.goal_title }}
                 </p>
               </div>
