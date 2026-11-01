@@ -9,9 +9,9 @@ import { GoalCreate, CATEGORIES, GOAL_COLORS } from '../../models/task.model';
   imports: [CommonModule, FormsModule],
   template: `
 <div class="modal-backdrop" (click)="onCancel()">
-  <div class="modal-box" (click)="$event.stopPropagation()">
+  <div class="modal-box flex flex-col max-h-[calc(100dvh-2rem)] overflow-hidden" (click)="$event.stopPropagation()">
 
-    <div class="modal-header">
+    <div class="modal-header shrink-0">
       <h2>{{ isEdit ? 'Modifier' : 'Nouvel objectif' }}</h2>
       <button class="modal-close" (click)="onCancel()">
         <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -20,7 +20,7 @@ import { GoalCreate, CATEGORIES, GOAL_COLORS } from '../../models/task.model';
       </button>
     </div>
 
-    <div class="modal-body">
+    <div class="modal-body flex-1 overflow-y-auto min-h-0">
       <div class="field-group">
         <label class="field-label">Titre de l'objectif *</label>
         <input [(ngModel)]="form.title" type="text" class="field-input" placeholder="Ex: Objectifs RH 2026" />
@@ -50,13 +50,13 @@ import { GoalCreate, CATEGORIES, GOAL_COLORS } from '../../models/task.model';
           Une action = une tâche dans le planning (V1, V2…). Renseignez chaque ligne séparément.
         </p>
 
-        <ul class="action-rows space-y-2 max-h-[220px] overflow-y-auto pr-1">
+        <ul class="action-rows space-y-2">
           <li *ngFor="let row of actionRows; let i = index; trackBy: trackByIndex"
             class="action-row flex items-start gap-2">
             <span class="action-badge mt-1">V{{ i + 1 }}</span>
             <div class="flex-1 min-w-0">
               <textarea
-                class="field-input w-full action-input"
+                class="field-input w-full action-input max-h-40 overflow-y-auto"
                 [(ngModel)]="actionRows[i]"
                 [name]="'action-' + i"
                 [placeholder]="actionPlaceholder(i)"
@@ -64,7 +64,7 @@ import { GoalCreate, CATEGORIES, GOAL_COLORS } from '../../models/task.model';
                 rows="1"
                 (keydown.enter)="onActionEnter(i, $event)"
                 (input)="autoResize($event)"
-                style="overflow:hidden;resize:vertical"></textarea>
+                style="resize:vertical"></textarea>
               <span class="action-charcount">{{ (actionRows[i] || '').length }} / 1000</span>
             </div>
             <button type="button"
@@ -105,7 +105,7 @@ import { GoalCreate, CATEGORIES, GOAL_COLORS } from '../../models/task.model';
       </div>
     </div>
 
-    <div class="modal-footer">
+    <div class="modal-footer shrink-0">
       <button class="btn-cancel" (click)="onCancel()">Annuler</button>
       <button class="btn-save" [style.background]="form.color" (click)="onSave()" [disabled]="!canSave()">
         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -129,7 +129,12 @@ import { GoalCreate, CATEGORIES, GOAL_COLORS } from '../../models/task.model';
       border-radius: 8px;
       padding: 6px 0;
     }
-    .action-input { margin: 0; min-height: 38px; }
+    .action-input {
+      margin: 0;
+      min-height: 38px;
+      max-height: 10rem;
+      overflow-y: auto;
+    }
     .action-charcount {
       display: block;
       text-align: right;
@@ -233,7 +238,7 @@ export class GoalFormComponent implements OnInit {
   autoResize(event: Event) {
     const el = event.target as HTMLTextAreaElement;
     el.style.height = 'auto';
-    el.style.height = el.scrollHeight + 'px';
+    el.style.height = Math.min(el.scrollHeight, 160) + 'px';
   }
 
   canSave(): boolean {

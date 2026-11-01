@@ -103,7 +103,7 @@ export class GoalActionVariablesComponent implements OnInit {
   autoResizeNew(event: Event) {
     const el = event.target as HTMLTextAreaElement;
     el.style.height = 'auto';
-    el.style.height = el.scrollHeight + 'px';
+    el.style.height = Math.min(el.scrollHeight, 160) + 'px';
   }
 
   toggleDone(v: Task) {
