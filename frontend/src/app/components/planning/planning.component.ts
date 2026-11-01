@@ -12,11 +12,11 @@ import { TaskService } from '../../services/task.service';
   template: `
     <div class="space-y-6 max-w-7xl mx-auto">
 
-      <!-- En-tÃªte -->
+      <!-- En-tête -->
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 class="text-2xl font-extrabold text-gray-900 mb-1">Planning &amp; Time-blocking</h1>
-          <p class="text-sm text-gray-500 font-medium">File progressive : une tÃ¢che Ã  la fois, sous-tÃ¢che aprÃ¨s sous-tÃ¢che.</p>
+          <p class="text-sm text-gray-500 font-medium">File progressive : une tâche à la fois, sous-tâche après sous-tâche.</p>
         </div>
         <div class="flex items-center gap-2 flex-wrap">
           <button (click)="goToToday()" *ngIf="weekOffset() !== 0" class="text-sm font-bold text-[#3b28cc] hover:underline transition-all">
@@ -25,7 +25,7 @@ import { TaskService } from '../../services/task.service';
           <button (click)="prevWeek()" class="flex items-center gap-2 border border-gray-200 bg-white text-gray-700 px-3 py-2 rounded-xl text-sm font-bold hover:bg-gray-50 transition-colors">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
           </button>
-          <span class="text-sm font-bold text-gray-700 bg-white border border-gray-200 rounded-xl px-3 py-2 shadow-sm whitespace-nowrap">S{{ weekNum() }} â€¢ {{ weekRange() }}</span>
+          <span class="text-sm font-bold text-gray-700 bg-white border border-gray-200 rounded-xl px-3 py-2 shadow-sm whitespace-nowrap">S{{ weekNum() }} • {{ weekRange() }}</span>
           <button (click)="nextWeek()" class="flex items-center gap-2 border border-gray-200 bg-white text-gray-700 px-3 py-2 rounded-xl text-sm font-bold hover:bg-gray-50 transition-colors">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
           </button>
@@ -42,7 +42,7 @@ import { TaskService } from '../../services/task.service';
             <p class="text-[9px] md:text-[10px] font-bold uppercase tracking-wider mb-1 truncate" [class]="i === selectedDay() ? 'text-indigo-200' : 'text-gray-400'">{{ day.label }}</p>
             <p class="text-xl md:text-2xl font-extrabold">{{ day.num }}</p>
             <p class="text-[10px] md:text-[11px] font-semibold mt-1" [class]="i === selectedDay() ? 'text-indigo-200' : 'text-gray-400'">
-              {{ getTasksForDay(i).length }} crÃ©n.
+              {{ getTasksForDay(i).length }} crén.
             </p>
           </div>
         </div>
@@ -60,7 +60,7 @@ import { TaskService } from '../../services/task.service';
           </div>
         </div>
 
-        <div *ngIf="loading()" class="text-center py-8 text-gray-400 text-sm">Chargement du planningâ€¦</div>
+        <div *ngIf="loading()" class="text-center py-8 text-gray-400 text-sm">Chargement du planning…</div>
 
         <div *ngIf="!loading() && displayTasks().length === 0" class="bg-white border border-dashed border-gray-200 rounded-2xl p-12 text-center">
           <div class="w-16 h-16 bg-indigo-50 rounded-3xl flex items-center justify-center mx-auto mb-5">
@@ -68,8 +68,8 @@ import { TaskService } from '../../services/task.service';
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
             </svg>
           </div>
-          <h3 class="text-lg font-bold text-gray-900 mb-2">Aucun bloc programmÃ©</h3>
-          <p class="text-gray-500 font-medium mb-5 max-w-sm mx-auto">Ajoutez des variables d'action Ã  un objectif ou crÃ©ez des tÃ¢ches avec une Ã©chÃ©ance cette semaine.</p>
+          <h3 class="text-lg font-bold text-gray-900 mb-2">Aucun bloc programmé</h3>
+          <p class="text-gray-500 font-medium mb-5 max-w-sm mx-auto">Ajoutez des variables d'action à un objectif ou créez des tâches avec une échéance cette semaine.</p>
           <a routerLink="/goals" class="inline-flex items-center gap-2 bg-[#3b28cc] text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm hover:bg-[#3222b0] transition-colors">
             Voir les objectifs
           </a>
@@ -84,7 +84,7 @@ import { TaskService } from '../../services/task.service';
             <div class="p-3 md:p-4 flex items-start gap-3 md:gap-4 min-w-0 max-w-full">
               <div class="flex-shrink-0 shrink-0 text-center min-w-[70px] md:min-w-[90px]">
                 <span class="text-xs font-extrabold text-gray-700 bg-gray-100 px-2 md:px-3 py-1.5 rounded-lg block">
-                  {{ task.start_time || 'â€”' }}
+                  {{ task.start_time || '—' }}
                 </span>
               </div>
 
@@ -100,18 +100,18 @@ import { TaskService } from '../../services/task.service';
                   <!-- Badge Objectif -->
                   <span *ngIf="task.is_action_variable"
                     class="text-[10px] font-bold text-violet-700 bg-violet-100 px-1.5 py-0.5 rounded cursor-help"
-                    [title]="'Objectif : ' + (task.goal_title || 'â€”')">
-                    Objectif â€¢ V{{ task.action_index ?? '?' }}
+                    [title]="'Objectif : ' + (task.goal_title || '—')">
+                    Objectif • V{{ task.action_index ?? '?' }}
                   </span>
 
                   <!-- Badge queue_state -->
                   <span *ngIf="task.queue_state === 'active'"
                     class="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded">
-                    â–¶ Active
+                    ▶ Active
                   </span>
                   <span *ngIf="task.queue_state === 'upcoming'"
                     class="text-[10px] font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">
-                    Ã€ venir
+                    À venir
                   </span>
                   <span *ngIf="task.queue_state === 'overdue' || (task.is_overdue && task.status !== 'DONE')"
                     class="text-[10px] font-bold text-red-700 bg-red-100 px-1.5 py-0.5 rounded">
@@ -123,7 +123,7 @@ import { TaskService } from '../../services/task.service';
                     class="text-[10px] font-bold text-gray-500 hidden sm:inline">
                     limite {{ task.task_deadline }}
                   </span>
-                  <span *ngIf="!task.is_action_variable && !task.is_overdue" class="text-[10px] font-bold text-gray-400 hidden sm:inline">â€¢ DEEP WORK</span>
+                  <span *ngIf="!task.is_action_variable && !task.is_overdue" class="text-[10px] font-bold text-gray-400 hidden sm:inline">• DEEP WORK</span>
                 </div>
 
                 <p *ngIf="task.is_action_variable && task.goal_title" class="text-[10px] text-violet-600 mt-1 min-w-0 max-w-full break-all [overflow-wrap:anywhere] line-clamp-1" [title]="task.goal_title">
@@ -133,7 +133,7 @@ import { TaskService } from '../../services/task.service';
 
               <!-- Actions -->
               <div class="flex flex-col sm:flex-row items-end sm:items-center gap-2 flex-shrink-0 shrink-0">
-                <!-- Bouton Terminer : variable active sans sous-tÃ¢ches, ou tÃ¢che classique non terminÃ©e -->
+                <!-- Bouton Terminer : variable active sans sous-tâches, ou tâche classique non terminée -->
                 <button
                   *ngIf="task.status !== 'DONE' && canShowCompleteButton(task)"
                   type="button"
@@ -145,7 +145,7 @@ import { TaskService } from '../../services/task.service';
 
                 <span *ngIf="task.status === 'DONE'"
                   class="hidden sm:flex items-center gap-1.5 bg-emerald-50 text-emerald-600 border border-emerald-200 px-3 py-1.5 rounded-xl text-xs font-bold">
-                  âœ“ ComplÃ©tÃ©
+                  ✓ Complété
                 </span>
                 <span *ngIf="task.status === 'IN_PROGRESS' && task.queue_state !== 'active'"
                   class="hidden sm:flex items-center gap-1.5 bg-amber-50 text-amber-600 border border-amber-200 px-3 py-1.5 rounded-xl text-xs font-bold">
@@ -153,12 +153,12 @@ import { TaskService } from '../../services/task.service';
                 </span>
                 <span *ngIf="(task.status === 'TODO' || task.status === 'LATE') && !task.is_action_variable"
                   class="hidden sm:flex items-center gap-1.5 bg-indigo-50 text-[#3b28cc] border border-indigo-100 px-3 py-1.5 rounded-xl text-xs font-bold">
-                  PrÃ©vu
+                  Prévu
                 </span>
               </div>
             </div>
 
-            <!-- Checklist des sous-tÃ¢ches -->
+            <!-- Checklist des sous-tâches -->
             <div *ngIf="task.subtasks && task.subtasks.length > 0"
               class="border-t px-4 py-3 space-y-2 min-w-0 max-w-full"
               [class.border-violet-100]="task.is_action_variable && task.queue_state === 'active'"
@@ -170,7 +170,7 @@ import { TaskService } from '../../services/task.service';
                 [class.opacity-40]="task.is_action_variable && task.queue_state === 'upcoming'"
                 [class.cursor-not-allowed]="task.is_action_variable && (task.queue_state !== 'active' || (st.id !== task.current_subtask_id && !st.terminee))">
 
-                <!-- Case Ã  cocher -->
+                <!-- Case à cocher -->
                 <input
                   type="checkbox"
                   [id]="'st-' + st.id"
@@ -286,7 +286,7 @@ export class PlanningComponent implements OnInit {
 
     const sun = new Date(monday);
     sun.setDate(monday.getDate() + 6);
-    this.weekRange.set(`${monday.getDate()} â€“ ${sun.getDate()} ${sun.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}`);
+    this.weekRange.set(`${monday.getDate()} – ${sun.getDate()} ${sun.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}`);
     this.currentMonth.set(today.toLocaleDateString('fr-FR', { month: 'long' }));
   }
 
@@ -327,12 +327,12 @@ export class PlanningComponent implements OnInit {
 
   /**
    * Affiche le bouton "Terminer" uniquement pour :
-   *  - une variable active sans sous-tÃ¢ches
-   *  - une tÃ¢che classique (pas is_action_variable)
+   *  - une variable active sans sous-tâches
+   *  - une tâche classique (pas is_action_variable)
    */
   canShowCompleteButton(task: PlanningSlot): boolean {
     if (!task.is_action_variable) return true;
-    // Variable active sans sous-tÃ¢ches
+    // Variable active sans sous-tâches
     if (task.queue_state === 'active' && (!task.subtasks || task.subtasks.length === 0)) return true;
     return false;
   }
