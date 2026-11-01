@@ -20,12 +20,12 @@ import { IdleWarningComponent } from '../idle-warning/idle-warning.component';
       <app-sidebar></app-sidebar>
 
       <!-- Contenu principal (décalé pour la sidebar) -->
-      <div class="flex-1 md:ml-64 w-full flex flex-col min-h-screen">
+      <div class="flex-1 md:ml-64 w-full min-w-0 max-w-full flex flex-col min-h-screen overflow-x-hidden">
         <!-- Topbar fixe -->
         <app-topbar></app-topbar>
 
         <!-- Page dynamique -->
-        <main class="flex-1 p-4 md:p-8 overflow-y-auto w-full max-w-full overflow-x-hidden">
+        <main class="flex-1 p-4 md:p-8 overflow-y-auto w-full max-w-full min-w-0 overflow-x-hidden">
           <router-outlet></router-outlet>
         </main>
         

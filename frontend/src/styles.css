@@ -64,7 +64,7 @@
   }
 
   .card {
-    @apply bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow duration-200;
+    @apply bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow duration-200 min-w-0 max-w-full;
   }
 
   .form-input {
@@ -165,27 +165,27 @@
 
 .goal-card {
   @apply bg-white rounded-xl border border-gray-100
-         shadow-sm p-5 space-y-4 transition-shadow duration-200 hover:shadow-md;
+         shadow-sm p-5 space-y-4 transition-shadow duration-200 hover:shadow-md min-w-0 max-w-full overflow-hidden;
 }
 .goal-late { @apply border-red-200; }
-.goal-card-header { @apply flex items-start gap-3; }
-.goal-icon { @apply w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0; }
-.goal-card-title { @apply flex-1 min-w-0; }
-.goal-card-title h3 { @apply text-sm font-semibold text-gray-900 truncate; }
+.goal-card-header { @apply flex items-start gap-3 min-w-0 max-w-full; }
+.goal-icon { @apply w-9 h-9 rounded-lg flex items-center justify-center shrink-0 flex-shrink-0; }
+.goal-card-title { @apply flex-1 min-w-0 max-w-full; }
+.goal-card-title h3 { @apply text-sm font-semibold text-gray-900 min-w-0 max-w-full break-all [overflow-wrap:anywhere] whitespace-pre-wrap; }
 .goal-category { @apply text-xs text-gray-400; }
-.goal-actions { @apply flex gap-1 ml-auto; }
+.goal-actions { @apply flex gap-1 ml-auto shrink-0 flex-shrink-0; }
 .goal-action-btn {
   @apply p-1.5 rounded-md text-gray-400 hover:text-gray-600
-         hover:bg-gray-100 transition-colors;
+         hover:bg-gray-100 transition-colors shrink-0 flex-shrink-0;
 }
 .goal-action-delete { @apply hover:text-red-500 hover:bg-red-50; }
 .late-banner {
   @apply flex items-center gap-2 px-3 py-2 bg-red-50 rounded-lg
-         text-xs font-medium text-red-600;
+         text-xs font-medium text-red-600 min-w-0 max-w-full;
 }
 
-.kpi-row { @apply grid grid-cols-4 gap-2; }
-.kpi-box { @apply flex flex-col items-center text-center; }
+.kpi-row { @apply grid grid-cols-[repeat(4,minmax(0,1fr))] gap-2 min-w-0 max-w-full; }
+.kpi-box { @apply flex flex-col items-center text-center min-w-0; }
 .kpi-label { @apply text-xs text-gray-400; }
 .kpi-value { @apply text-base font-bold text-gray-900; }
 .kpi-sub { @apply text-xs text-gray-400; }

@@ -13,23 +13,23 @@ Chart.register(LineElement, PointElement, LinearScale, CategoryScale, Filler, To
   standalone: true,
   imports: [CommonModule, GoalActionVariablesComponent],
   template: `
-<div class="goal-card" [class.goal-late]="goal.stats.isLate">
+<div class="goal-card min-w-0 max-w-full overflow-hidden" [class.goal-late]="goal.stats.isLate">
 
   <!-- Header -->
-  <div class="goal-card-header">
-    <div class="goal-icon" [style.background]="goal.color + '22'" [style.color]="goal.color">
+  <div class="goal-card-header min-w-0 max-w-full">
+    <div class="goal-icon shrink-0 flex-shrink-0" [style.background]="goal.color + '22'" [style.color]="goal.color">
       <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
         <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
       </svg>
     </div>
-    <div class="goal-card-title flex-1 min-w-0">
-      <h3 class="break-words whitespace-pre-wrap line-clamp-2" [title]="goal.title">{{ goal.title }}</h3>
+    <div class="goal-card-title flex-1 min-w-0 max-w-full">
+      <h3 class="min-w-0 max-w-full break-all [overflow-wrap:anywhere] whitespace-pre-wrap line-clamp-2" [title]="goal.title">{{ goal.title }}</h3>
       <span class="goal-category">{{ goal.category }}</span>
       <span class="inline-block mt-1 text-[10px] font-bold text-violet-700 bg-violet-100 px-2 py-0.5 rounded-full">
         Actions liées
       </span>
     </div>
-    <div class="goal-actions">
+    <div class="goal-actions shrink-0 flex-shrink-0">
       <button (click)="onEdit()" class="goal-action-btn" title="Modifier">
         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>

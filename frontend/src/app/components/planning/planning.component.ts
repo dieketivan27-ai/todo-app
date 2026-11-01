@@ -75,21 +75,21 @@ import { TaskService } from '../../services/task.service';
           </a>
         </div>
 
-        <div *ngIf="!loading() && displayTasks().length > 0" class="space-y-3">
+        <div *ngIf="!loading() && displayTasks().length > 0" class="space-y-3 min-w-0 max-w-full">
           <div *ngFor="let task of displayTasks()"
-            class="bg-white border rounded-2xl shadow-sm overflow-hidden"
+            class="bg-white border rounded-2xl shadow-sm overflow-hidden min-w-0 max-w-full"
             [ngClass]="taskRowClasses(task)">
 
             <!-- Ligne principale -->
-            <div class="p-3 md:p-4 flex items-start gap-3 md:gap-4">
-              <div class="flex-shrink-0 text-center min-w-[70px] md:min-w-[90px]">
+            <div class="p-3 md:p-4 flex items-start gap-3 md:gap-4 min-w-0 max-w-full">
+              <div class="flex-shrink-0 shrink-0 text-center min-w-[70px] md:min-w-[90px]">
                 <span class="text-xs font-extrabold text-gray-700 bg-gray-100 px-2 md:px-3 py-1.5 rounded-lg block">
                   {{ task.start_time || 'â€”' }}
                 </span>
               </div>
 
-              <div class="flex-1 min-w-0">
-                <h4 class="font-bold text-gray-900 text-sm break-words whitespace-pre-wrap line-clamp-2"
+              <div class="flex-1 min-w-0 max-w-full">
+                <h4 class="font-bold text-gray-900 text-sm min-w-0 max-w-full break-all [overflow-wrap:anywhere] whitespace-pre-wrap line-clamp-2"
                   [title]="task.title"
                   [class.line-through]="task.status === 'DONE' || task.is_completed_occurrence"
                   [class.text-gray-500]="task.status === 'DONE' || task.is_completed_occurrence">{{ task.title }}</h4>
@@ -126,13 +126,13 @@ import { TaskService } from '../../services/task.service';
                   <span *ngIf="!task.is_action_variable && !task.is_overdue" class="text-[10px] font-bold text-gray-400 hidden sm:inline">â€¢ DEEP WORK</span>
                 </div>
 
-                <p *ngIf="task.is_action_variable && task.goal_title" class="text-[10px] text-violet-600 mt-1 break-words line-clamp-1" [title]="task.goal_title">
+                <p *ngIf="task.is_action_variable && task.goal_title" class="text-[10px] text-violet-600 mt-1 min-w-0 max-w-full break-all [overflow-wrap:anywhere] line-clamp-1" [title]="task.goal_title">
                   {{ task.goal_title }}
                 </p>
               </div>
 
               <!-- Actions -->
-              <div class="flex flex-col sm:flex-row items-end sm:items-center gap-2 flex-shrink-0">
+              <div class="flex flex-col sm:flex-row items-end sm:items-center gap-2 flex-shrink-0 shrink-0">
                 <!-- Bouton Terminer : variable active sans sous-tÃ¢ches, ou tÃ¢che classique non terminÃ©e -->
                 <button
                   *ngIf="task.status !== 'DONE' && canShowCompleteButton(task)"
@@ -160,12 +160,12 @@ import { TaskService } from '../../services/task.service';
 
             <!-- Checklist des sous-tÃ¢ches -->
             <div *ngIf="task.subtasks && task.subtasks.length > 0"
-              class="border-t px-4 py-3 space-y-2"
+              class="border-t px-4 py-3 space-y-2 min-w-0 max-w-full"
               [class.border-violet-100]="task.is_action_variable && task.queue_state === 'active'"
               [class.border-gray-100]="!task.is_action_variable || task.queue_state !== 'active'">
 
               <div *ngFor="let st of task.subtasks"
-                class="flex items-center gap-2.5 rounded-lg px-2 py-1.5 transition-colors min-h-[44px]"
+                class="flex items-center gap-2.5 rounded-lg px-2 py-1.5 transition-colors min-h-[44px] min-w-0 max-w-full"
                 [class.bg-violet-50]="task.is_action_variable && st.id === task.current_subtask_id"
                 [class.opacity-40]="task.is_action_variable && task.queue_state === 'upcoming'"
                 [class.cursor-not-allowed]="task.is_action_variable && (task.queue_state !== 'active' || (st.id !== task.current_subtask_id && !st.terminee))">
@@ -177,11 +177,11 @@ import { TaskService } from '../../services/task.service';
                   [checked]="st.terminee"
                   [disabled]="(task.is_action_variable && task.queue_state !== 'active') || togglingSubtaskId() === st.id || (task.is_action_variable && st.id !== task.current_subtask_id && !st.terminee)"
                   (change)="toggleSubtask(task, st.id, !st.terminee)"
-                  class="w-5 h-5 md:w-4 md:h-4 accent-violet-600 rounded cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 flex-shrink-0">
+                  class="w-5 h-5 md:w-4 md:h-4 accent-violet-600 rounded cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 flex-shrink-0 shrink-0">
 
                 <label
                   [for]="'st-' + st.id"
-                  class="text-sm md:text-xs font-medium flex-1 cursor-pointer select-none py-2"
+                  class="text-sm md:text-xs font-medium flex-1 min-w-0 max-w-full break-all [overflow-wrap:anywhere] whitespace-pre-wrap cursor-pointer select-none py-2"
                   [class.line-through]="st.terminee"
                   [class.text-gray-400]="st.terminee"
                   [class.text-gray-700]="!st.terminee && (!task.is_action_variable || st.id !== task.current_subtask_id)"

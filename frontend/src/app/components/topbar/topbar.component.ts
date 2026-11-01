@@ -83,16 +83,16 @@ import { LayoutService } from '../../services/layout.service';
                 Aucune notification
               </div>
               <div *ngFor="let notif of notifications()" 
-                class="p-4 border-b border-gray-50 hover:bg-gray-50 transition-colors cursor-pointer"
+                class="p-4 border-b border-gray-50 hover:bg-gray-50 transition-colors cursor-pointer min-w-0 max-w-full"
                 [class.bg-indigo-50]="!notif.is_read"
                 (click)="markAsRead(notif.id)">
-                <div class="flex items-start justify-between gap-2">
-                  <div>
-                    <h4 class="text-sm font-bold text-gray-900" [class.text-[#3b28cc]]="!notif.is_read">{{ notif.title }}</h4>
-                    <p class="text-xs text-gray-500 mt-0.5">{{ notif.message }}</p>
+                <div class="flex items-start justify-between gap-2 min-w-0 max-w-full">
+                  <div class="flex-1 min-w-0 max-w-full">
+                    <h4 class="text-sm font-bold text-gray-900 min-w-0 max-w-full break-all [overflow-wrap:anywhere]" [class.text-[#3b28cc]]="!notif.is_read">{{ notif.title }}</h4>
+                    <p class="text-xs text-gray-500 mt-0.5 min-w-0 max-w-full break-all [overflow-wrap:anywhere]">{{ notif.message }}</p>
                     <p class="text-[10px] text-gray-400 mt-1 font-medium">{{ notif.created_at | date:'d MMM HH:mm' }}</p>
                   </div>
-                  <button (click)="deleteNotif(notif.id, $event)" class="text-gray-400 hover:text-red-500 p-1 rounded-md hover:bg-red-50 transition-colors">
+                  <button (click)="deleteNotif(notif.id, $event)" class="text-gray-400 hover:text-red-500 p-1 rounded-md hover:bg-red-50 transition-colors shrink-0 flex-shrink-0">
                     <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                   </button>
                 </div>
@@ -167,17 +167,17 @@ import { LayoutService } from '../../services/layout.service';
         <h2 class="text-xl font-extrabold text-gray-900 mb-1">Nouvelle tâche</h2>
         <p class="text-sm text-gray-500 font-medium mb-6">Créez rapidement une tâche dans votre système.</p>
 
-        <div class="space-y-4">
-          <div>
+        <div class="space-y-4 min-w-0 max-w-full">
+          <div class="min-w-0 max-w-full">
             <label class="block text-sm font-bold text-gray-700 mb-1">Titre *</label>
             <input type="text" [(ngModel)]="form.title" placeholder="Ex: Corriger le bug d'authentification"
-              class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#3b28cc]/20 focus:border-[#3b28cc] transition-colors"
+              class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#3b28cc]/20 focus:border-[#3b28cc] transition-colors break-all [overflow-wrap:anywhere]"
               autofocus>
           </div>
-          <div>
+          <div class="min-w-0 max-w-full">
             <label class="block text-sm font-bold text-gray-700 mb-1">Description</label>
             <textarea [(ngModel)]="form.description" rows="2" placeholder="Détails optionnels..."
-              class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#3b28cc]/20 focus:border-[#3b28cc] resize-none transition-colors"></textarea>
+              class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#3b28cc]/20 focus:border-[#3b28cc] resize-none transition-colors break-all [overflow-wrap:anywhere]"></textarea>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>

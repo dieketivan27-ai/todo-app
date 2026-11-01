@@ -18,10 +18,10 @@
     <form (ngSubmit)="onSubmit()" class="space-y-4">
 
       <!-- Titre -->
-      <div>
+      <div class="min-w-0 max-w-full">
         <label class="form-label">Titre <span class="text-red-500">*</span></label>
         <textarea [(ngModel)]="form.title" name="title"
-          placeholder="Nom de la tâche..." class="form-input resize-y" rows="1"
+          placeholder="Nom de la tâche..." class="form-input resize-y min-w-0 max-w-full break-all [overflow-wrap:anywhere]" rows="1"
           [maxlength]="1000" required autofocus
           (input)="autoResizeTitle($event)"
           style="overflow:hidden;resize:vertical;min-height:42px"></textarea>
@@ -32,11 +32,11 @@
       </div>
 
       <!-- Description -->
-      <div>
+      <div class="min-w-0 max-w-full">
         <label class="form-label">Description</label>
         <textarea [(ngModel)]="form.description" name="description"
           placeholder="Détails optionnels..." rows="3"
-          class="form-input resize-none"></textarea>
+          class="form-input resize-none min-w-0 max-w-full break-all [overflow-wrap:anywhere]"></textarea>
       </div>
 
       <!-- Priorité + Catégorie -->

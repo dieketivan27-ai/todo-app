@@ -20,10 +20,10 @@ import { GoalCreate, CATEGORIES, GOAL_COLORS } from '../../models/task.model';
       </button>
     </div>
 
-    <div class="modal-body flex-1 overflow-y-auto min-h-0">
-      <div class="field-group">
+    <div class="modal-body flex-1 overflow-y-auto min-h-0 min-w-0 max-w-full">
+      <div class="field-group min-w-0 max-w-full">
         <label class="field-label">Titre de l'objectif *</label>
-        <input [(ngModel)]="form.title" type="text" class="field-input" placeholder="Ex: Objectifs RH 2026" />
+        <input [(ngModel)]="form.title" type="text" class="field-input break-all [overflow-wrap:anywhere]" placeholder="Ex: Objectifs RH 2026" />
       </div>
 
       <div class="field-group">
@@ -39,10 +39,10 @@ import { GoalCreate, CATEGORIES, GOAL_COLORS } from '../../models/task.model';
         <input [(ngModel)]="form.year" type="number" min="2020" max="2035" class="field-input" />
       </div>
 
-      <div class="field-group" *ngIf="!isEdit">
+      <div class="field-group min-w-0 max-w-full" *ngIf="!isEdit">
         <div class="flex items-center justify-between gap-2 mb-2">
           <label class="field-label mb-0">Actions / tâches liées *</label>
-          <span class="text-[10px] font-bold text-violet-600 bg-violet-50 px-2 py-0.5 rounded-full">
+          <span class="text-[10px] font-bold text-violet-600 bg-violet-50 px-2 py-0.5 rounded-full shrink-0">
             {{ filledActionsCount() }} renseignée(s)
           </span>
         </div>
@@ -50,13 +50,13 @@ import { GoalCreate, CATEGORIES, GOAL_COLORS } from '../../models/task.model';
           Une action = une tâche dans le planning (V1, V2…). Renseignez chaque ligne séparément.
         </p>
 
-        <ul class="action-rows space-y-2">
+        <ul class="action-rows space-y-2 min-w-0 max-w-full">
           <li *ngFor="let row of actionRows; let i = index; trackBy: trackByIndex"
-            class="action-row flex items-start gap-2">
-            <span class="action-badge mt-1">V{{ i + 1 }}</span>
-            <div class="flex-1 min-w-0">
+            class="action-row flex items-start gap-2 min-w-0 max-w-full">
+            <span class="action-badge mt-1 shrink-0 flex-shrink-0">V{{ i + 1 }}</span>
+            <div class="flex-1 min-w-0 max-w-full">
               <textarea
-                class="field-input w-full action-input max-h-40 overflow-y-auto"
+                class="field-input w-full action-input max-h-40 overflow-y-auto break-all [overflow-wrap:anywhere]"
                 [(ngModel)]="actionRows[i]"
                 [name]="'action-' + i"
                 [placeholder]="actionPlaceholder(i)"
@@ -68,7 +68,7 @@ import { GoalCreate, CATEGORIES, GOAL_COLORS } from '../../models/task.model';
               <span class="action-charcount">{{ (actionRows[i] || '').length }} / 1000</span>
             </div>
             <button type="button"
-              class="action-remove mt-1"
+              class="action-remove mt-1 shrink-0 flex-shrink-0"
               (click)="removeActionRow(i)"
               [disabled]="actionRows.length <= 1"
               title="Supprimer cette ligne">

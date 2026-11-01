@@ -39,12 +39,12 @@ import { AuthService } from '../../services/auth.service';
           <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd"/></svg>
           Objectif Principal du Jour (North Star)
         </div>
-        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6">
-          <div class="flex-1 w-full min-w-0">
-            <h3 class="text-xl font-extrabold text-gray-900 mb-1 break-words whitespace-pre-wrap line-clamp-2" [title]="northStar()!.title">{{ northStar()!.title }}</h3>
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6 min-w-0 max-w-full">
+          <div class="flex-1 w-full min-w-0 max-w-full">
+            <h3 class="text-xl font-extrabold text-gray-900 mb-1 min-w-0 max-w-full break-all [overflow-wrap:anywhere] whitespace-pre-wrap line-clamp-2" [title]="northStar()!.title">{{ northStar()!.title }}</h3>
             <p class="text-xs text-gray-500 font-medium">Rattaché à l'Horizon {{ northStar()!.year }}</p>
           </div>
-          <div class="flex-shrink-0 flex items-center w-full sm:w-auto justify-between sm:justify-start gap-4">
+          <div class="flex-shrink-0 shrink-0 flex items-center w-full sm:w-auto justify-between sm:justify-start gap-4">
             <div class="text-left sm:text-right">
               <div class="text-2xl font-extrabold text-[#3b28cc]">{{ northStar()!.stats.annualPct }}%</div>
               <div class="text-[10px] font-bold text-gray-500 uppercase">atteint</div>
@@ -94,17 +94,17 @@ import { AuthService } from '../../services/auth.service';
         </div>
 
         <!-- Task time blocks -->
-        <div *ngIf="allTasks().length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-          <div *ngFor="let task of displayTasks()" class="bg-white border rounded-xl p-3 shadow-sm"
+        <div *ngIf="allTasks().length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[repeat(4,minmax(0,1fr))] gap-3 mb-4 min-w-0 max-w-full">
+          <div *ngFor="let task of displayTasks()" class="bg-white border rounded-xl p-3 shadow-sm min-w-0 max-w-full overflow-hidden"
             [class]="task.status === 'DONE' ? 'border-emerald-200 bg-emerald-50/50' : task.status === 'IN_PROGRESS' ? 'border-amber-200 bg-amber-50/30' : 'border-gray-100'">
             <div class="flex items-center justify-between mb-2">
-              <span class="text-[10px] font-bold text-gray-400">{{ task.start_time || '—' }}</span>
-              <div [class]="task.status === 'DONE' ? 'w-4 h-4 bg-emerald-500 rounded flex items-center justify-center' : task.status === 'IN_PROGRESS' ? 'w-4 h-4 border-2 border-amber-400 rounded-full' : 'w-4 h-4 border-2 border-gray-300 rounded-full'">
+              <span class="text-[10px] font-bold text-gray-400 shrink-0">{{ task.start_time || '—' }}</span>
+              <div [class]="task.status === 'DONE' ? 'w-4 h-4 bg-emerald-500 rounded flex items-center justify-center shrink-0' : task.status === 'IN_PROGRESS' ? 'w-4 h-4 border-2 border-amber-400 rounded-full shrink-0' : 'w-4 h-4 border-2 border-gray-300 rounded-full shrink-0'">
                 <svg *ngIf="task.status === 'DONE'" class="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
               </div>
             </div>
-            <p class="text-xs font-bold text-gray-800 leading-tight break-words whitespace-pre-wrap line-clamp-2" [title]="task.title">{{ task.title }}</p>
-            <p class="text-[10px] text-[#3b28cc] font-bold mt-1">{{ task.category }}</p>
+            <p class="text-xs font-bold text-gray-800 leading-tight min-w-0 max-w-full break-all [overflow-wrap:anywhere] whitespace-pre-wrap line-clamp-2" [title]="task.title">{{ task.title }}</p>
+            <p class="text-[10px] text-[#3b28cc] font-bold mt-1 truncate">{{ task.category }}</p>
           </div>
         </div>
 

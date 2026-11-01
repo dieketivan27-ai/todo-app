@@ -1,11 +1,11 @@
-<div class="card p-4 animate-slide-up"
+<div class="card p-4 animate-slide-up min-w-0 max-w-full overflow-hidden"
   [class.opacity-60]="task.status === 'DONE'">
 
-  <div class="flex items-start gap-3">
+  <div class="flex items-start gap-3 min-w-0 max-w-full">
 
     <!-- Checkbox done -->
     <button (click)="task.status === 'DONE' ? markInProgress.emit(task.id) : markDone.emit(task.id)"
-      class="mt-0.5 flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors"
+      class="mt-0.5 shrink-0 flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors"
       [class.border-primary-500]="task.status !== 'DONE'"
       [class.bg-primary-500]="task.status === 'DONE'"
       [class.border-primary-500]="task.status === 'DONE'"
@@ -16,29 +16,29 @@
     </button>
 
     <!-- Contenu principal -->
-    <div class="flex-1 min-w-0">
+    <div class="flex-1 min-w-0 max-w-full">
 
       <!-- Titre + badges -->
-      <div class="flex flex-wrap items-center gap-2 mb-1">
-        <h3 class="font-medium text-gray-900 dark:text-white text-sm leading-snug break-words whitespace-pre-wrap line-clamp-3"
+      <div class="flex flex-wrap items-center gap-2 mb-1 min-w-0 max-w-full">
+        <h3 class="font-medium text-gray-900 dark:text-white text-sm leading-snug min-w-0 max-w-full break-all [overflow-wrap:anywhere] whitespace-pre-wrap line-clamp-3"
           [class.line-through]="task.status === 'DONE'"
           [class.text-gray-400]="task.status === 'DONE'"
           [title]="task.title">
           {{ task.title }}
         </h3>
         <!-- Priorité -->
-        <span [class]="'badge-' + task.priority.toLowerCase()">
+        <span [class]="'badge-' + task.priority.toLowerCase()" class="shrink-0">
           {{ priorityLabels[task.priority] }}
         </span>
         <!-- Statut -->
-        <span [class]="'status-' + task.status.toLowerCase()">
+        <span [class]="'status-' + task.status.toLowerCase()" class="shrink-0">
           {{ statusLabels[task.status] }}
         </span>
       </div>
 
       <!-- Description -->
       <p *ngIf="task.description"
-        class="text-xs text-gray-500 dark:text-gray-400 mb-2 line-clamp-2">
+        class="text-xs text-gray-500 dark:text-gray-400 mb-2 min-w-0 max-w-full break-all [overflow-wrap:anywhere] whitespace-pre-wrap line-clamp-2">
         {{ task.description }}
       </p>
 
@@ -74,7 +74,7 @@
     </div>
 
     <!-- Actions -->
-    <div class="flex items-center gap-1 flex-shrink-0">
+    <div class="flex items-center gap-1 flex-shrink-0 shrink-0">
 
       <!-- En cours -->
       <button *ngIf="task.status === 'TODO' || task.status === 'LATE'"

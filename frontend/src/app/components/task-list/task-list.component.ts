@@ -68,10 +68,10 @@ import { firstValueFrom } from 'rxjs';
       </div>
 
       <!-- Kanban Board -->
-      <div *ngIf="!loading() && allTasks().length > 0" class="flex lg:grid lg:grid-cols-3 gap-6 overflow-x-auto snap-x snap-mandatory pb-4">
+      <div *ngIf="!loading() && allTasks().length > 0" class="flex lg:grid lg:grid-cols-[repeat(3,minmax(0,1fr))] gap-6 overflow-x-auto snap-x snap-mandatory pb-4 min-w-0 max-w-full">
 
         <!-- Column: À Faire -->
-        <div class="flex flex-col gap-3 min-w-[85vw] sm:min-w-[400px] lg:min-w-0 snap-center">
+        <div class="flex flex-col gap-3 min-w-[85vw] sm:min-w-[400px] lg:min-w-0 snap-center max-w-full">
           <div class="flex items-center justify-between bg-white border border-gray-100 rounded-xl p-3 shadow-sm">
             <div class="flex items-center gap-2">
               <span class="w-2.5 h-2.5 rounded-full bg-gray-400"></span>
@@ -79,14 +79,14 @@ import { firstValueFrom } from 'rxjs';
             </div>
             <span class="text-xs font-bold text-gray-500 bg-gray-100 px-2.5 py-0.5 rounded-md">{{ todoTasks().length }}</span>
           </div>
-          <div *ngFor="let task of todoTasks()" class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all group">
+          <div *ngFor="let task of todoTasks()" class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all group min-w-0 max-w-full overflow-hidden">
             <ng-container *ngTemplateOutlet="taskCard; context: { task: task }"></ng-container>
           </div>
           <div *ngIf="todoTasks().length === 0" class="bg-gray-50 border border-dashed border-gray-200 rounded-2xl p-6 text-center text-xs text-gray-400 font-medium">Aucune tâche</div>
         </div>
 
         <!-- Column: En Cours -->
-        <div class="flex flex-col gap-3 min-w-[85vw] sm:min-w-[400px] lg:min-w-0 snap-center">
+        <div class="flex flex-col gap-3 min-w-[85vw] sm:min-w-[400px] lg:min-w-0 snap-center max-w-full">
           <div class="flex items-center justify-between bg-amber-50 border border-amber-200 rounded-xl p-3 shadow-sm">
             <div class="flex items-center gap-2">
               <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
@@ -94,7 +94,7 @@ import { firstValueFrom } from 'rxjs';
             </div>
             <span class="text-xs font-bold text-amber-700 bg-amber-100 px-2.5 py-0.5 rounded-md">{{ inProgressTasks().length }}</span>
           </div>
-          <div *ngFor="let task of inProgressTasks()" class="bg-white border-2 border-amber-200 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all group relative overflow-hidden">
+          <div *ngFor="let task of inProgressTasks()" class="bg-white border-2 border-amber-200 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all group relative overflow-hidden min-w-0 max-w-full">
             <div class="absolute left-0 top-0 bottom-0 w-1 bg-amber-400"></div>
             <ng-container *ngTemplateOutlet="taskCard; context: { task: task }"></ng-container>
           </div>
@@ -102,7 +102,7 @@ import { firstValueFrom } from 'rxjs';
         </div>
 
         <!-- Column: Terminées -->
-        <div class="flex flex-col gap-3 min-w-[85vw] sm:min-w-[400px] lg:min-w-0 snap-center">
+        <div class="flex flex-col gap-3 min-w-[85vw] sm:min-w-[400px] lg:min-w-0 snap-center max-w-full">
           <div class="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-xl p-3 shadow-sm">
             <div class="flex items-center gap-2">
               <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
@@ -110,7 +110,7 @@ import { firstValueFrom } from 'rxjs';
             </div>
             <span class="text-xs font-bold text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-md">{{ doneTasks().length }}</span>
           </div>
-          <div *ngFor="let task of doneTasks()" class="bg-gray-50 border border-gray-100 rounded-2xl p-4 opacity-80 group">
+          <div *ngFor="let task of doneTasks()" class="bg-gray-50 border border-gray-100 rounded-2xl p-4 opacity-80 group min-w-0 max-w-full overflow-hidden">
             <ng-container *ngTemplateOutlet="taskCard; context: { task: task }"></ng-container>
           </div>
           <div *ngIf="doneTasks().length === 0" class="bg-gray-50 border border-dashed border-gray-200 rounded-2xl p-6 text-center text-xs text-gray-400 font-medium">Aucune tâche</div>
@@ -120,14 +120,14 @@ import { firstValueFrom } from 'rxjs';
 
       <!-- Task Card Template -->
       <ng-template #taskCard let-task="task">
-        <div class="flex items-start gap-3">
+        <div class="flex items-start gap-3 min-w-0 max-w-full">
           <button (click)="toggleDone(task)"
-            class="mt-0.5 flex-shrink-0 w-5 h-5 rounded-md border-2 transition-colors"
+            class="mt-0.5 shrink-0 flex-shrink-0 w-5 h-5 rounded-md border-2 transition-colors"
             [class]="task.status === 'DONE' ? 'bg-[#3b28cc] border-[#3b28cc] flex items-center justify-center' : 'border-gray-300 hover:border-[#3b28cc]'">
             <svg *ngIf="task.status === 'DONE'" class="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
           </button>
-          <div class="flex-1 min-w-0">
-            <h4 class="text-[15px] font-bold leading-tight mb-2 break-words whitespace-pre-wrap line-clamp-3" [class]="task.status === 'DONE' ? 'text-gray-400 line-through' : 'text-gray-900'" [title]="task.title">{{ task.title }}</h4>
+          <div class="flex-1 min-w-0 max-w-full">
+            <h4 class="text-[15px] font-bold leading-tight mb-2 min-w-0 max-w-full break-all [overflow-wrap:anywhere] whitespace-pre-wrap line-clamp-3" [class]="task.status === 'DONE' ? 'text-gray-400 line-through' : 'text-gray-900'" [title]="task.title">{{ task.title }}</h4>
             <div class="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[11px] font-semibold text-gray-500">
               <span class="text-[#3b28cc]">{{ task.category }}</span>
               <span *ngIf="task.deadline" class="flex items-center gap-1">
@@ -140,7 +140,7 @@ import { firstValueFrom } from 'rxjs';
               </button>
             </div>
           </div>
-          <div class="flex flex-col sm:flex-row lg:flex-col gap-1 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity">
+          <div class="flex flex-col sm:flex-row lg:flex-col gap-1 shrink-0 flex-shrink-0 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity">
             <button *ngIf="task.status !== 'IN_PROGRESS' && task.status !== 'DONE'" (click)="markInProgress(task)"
               class="text-amber-600 hover:bg-amber-50 p-1 rounded transition-colors" title="Démarrer">
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/></svg>
@@ -155,10 +155,10 @@ import { firstValueFrom } from 'rxjs';
         </div>
 
         <!-- Expanded Subtasks Checklist -->
-        <div *ngIf="expandedTaskIds().has(task.id) && task.subtasks?.length" class="mt-4 pt-3 border-t border-gray-100 space-y-2 pl-8">
-          <div *ngFor="let st of task.subtasks" class="flex items-center gap-2.5 min-h-[44px]">
-            <input type="checkbox" [id]="'st-kanban-' + st.id" [checked]="st.terminee" (change)="toggleSubtask(task, st.id, !st.terminee)" class="w-5 h-5 md:w-4 md:h-4 accent-[#3b28cc] rounded cursor-pointer flex-shrink-0">
-            <label [for]="'st-kanban-' + st.id" class="text-sm font-medium flex-1 cursor-pointer select-none py-2" [class.line-through]="st.terminee" [class.text-gray-400]="st.terminee" [class.text-gray-700]="!st.terminee">{{ st.titre }}</label>
+        <div *ngIf="expandedTaskIds().has(task.id) && task.subtasks?.length" class="mt-4 pt-3 border-t border-gray-100 space-y-2 pl-8 min-w-0 max-w-full">
+          <div *ngFor="let st of task.subtasks" class="flex items-center gap-2.5 min-h-[44px] min-w-0 max-w-full">
+            <input type="checkbox" [id]="'st-kanban-' + st.id" [checked]="st.terminee" (change)="toggleSubtask(task, st.id, !st.terminee)" class="w-5 h-5 md:w-4 md:h-4 accent-[#3b28cc] rounded cursor-pointer shrink-0 flex-shrink-0">
+            <label [for]="'st-kanban-' + st.id" class="text-sm font-medium flex-1 min-w-0 max-w-full break-all [overflow-wrap:anywhere] whitespace-pre-wrap cursor-pointer select-none py-2" [class.line-through]="st.terminee" [class.text-gray-400]="st.terminee" [class.text-gray-700]="!st.terminee">{{ st.titre }}</label>
           </div>
         </div>
       </ng-template>
@@ -177,14 +177,14 @@ import { firstValueFrom } from 'rxjs';
               <label class="block text-sm font-bold text-gray-700 mb-1">Titre *</label>
               <textarea [(ngModel)]="form.title" placeholder="Ex: Corriger le bug d'auth" rows="1"
                 [maxlength]="1000"
-                class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#3b28cc]/20 focus:border-[#3b28cc] transition-colors resize-y"
+                class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#3b28cc]/20 focus:border-[#3b28cc] transition-colors resize-y break-all [overflow-wrap:anywhere]"
                 style="overflow:hidden;resize:vertical;min-height:44px"></textarea>
               <span class="block text-[10px] text-gray-400 text-right mt-1">{{ (form.title || '').length }} / 1000</span>
             </div>
             <div>
               <label class="block text-sm font-bold text-gray-700 mb-1">Description</label>
               <textarea [(ngModel)]="form.description" rows="3" placeholder="Détails optionnels..."
-                class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#3b28cc]/20 focus:border-[#3b28cc] transition-colors resize-none"></textarea>
+                class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#3b28cc]/20 focus:border-[#3b28cc] transition-colors resize-none break-all [overflow-wrap:anywhere]"></textarea>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
