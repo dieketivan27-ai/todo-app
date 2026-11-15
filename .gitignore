@@ -7,6 +7,9 @@ node_modules/
 *.env
 .env.local
 .env.*.local
+**/.env
+**/.env.local
+**/.env.*
 
 # Build output
 dist/
@@ -24,3 +27,4 @@ Thumbs.db
 
 # Uploads temp
 backend/uploads/
+.neon

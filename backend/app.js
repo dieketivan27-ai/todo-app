@@ -1,4 +1,15 @@
-require('dotenv').config();
+const path = require('path');
+const dotenv = require('dotenv');
+
+// Charge les variables d'environnement (.env.local prioritaire, racine ou backend)
+[
+  path.resolve(__dirname, '../.env.local'),
+  path.resolve(__dirname, './.env.local'),
+  path.resolve(__dirname, '../.env'),
+  path.resolve(__dirname, './.env')
+].forEach(envFile => {
+  dotenv.config({ path: envFile });
+});
 const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
@@ -105,7 +116,11 @@ const start = async () => {
   });
 };
 
-start().catch(err => {
-  console.error('❌ Erreur démarrage:', err);
-  process.exit(1);
-});
+if (require.main === module) {
+  start().catch(err => {
+    console.error('❌ Erreur démarrage:', err);
+    process.exit(1);
+  });
+}
+
+module.exports = { app, start };
